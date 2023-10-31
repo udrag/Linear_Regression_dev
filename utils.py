@@ -22,3 +22,14 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
              best_max_deph - best max depth number to be used in the forest regressor parameters
              best_n_estimators - best n estimators number to be used in the forest regressor parameters
     """
+
+    min_samples_split_list = [2, 10, 30, 50, 100, 200, 300, 400, 500, 700, 800]
+    max_depth_list = [2, 4, 8, 16, 32, 64, 128, None]
+    n_estimators_list = [10, 50, 100, 500, 1000]
+
+    all_mse_train = np.zeros(0)
+    all_mse_cv = np.zeros(0)
+    mse_list_train = []
+    mse_list_cv = []
+    diff_mse = np.zeros(0)
+    best_min_split = 0
