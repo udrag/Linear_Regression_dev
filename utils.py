@@ -47,3 +47,18 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
         all_mse_train = np.append(all_mse_train, mse_train)
         all_mse_cv = np.append(all_mse_cv, mse_cv)
         diff_mse = np.append(diff_mse, (mse_cv - mse_train))
+
+    for i, (v, j, k) in enumerate(zip(diff_mse, all_mse_train, all_mse_cv)):
+        if v < np.mean(diff_mse) and v > 0:
+            if j < np.mean(all_mse_train) and k < np.mean(all_mse_cv):
+                best_min_split = min_samples_split_list[i]
+                break
+    plt.figure(figsize=(12, 4))
+    plt.subplot(1, 3, 1)
+    plt.title('Train x Validation metrics')
+    plt.xlabel('min_samples_split')
+    plt.ylabel('mse')
+    plt.xticks(ticks=range(len(min_samples_split_list)), labels=min_samples_split_list)
+    plt.plot(mse_list_train)
+    plt.plot(mse_list_cv)
+    plt.legend(['Train', 'Validation'])
