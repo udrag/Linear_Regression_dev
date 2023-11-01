@@ -33,6 +33,7 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
     mse_list_cv = []
     diff_mse = np.zeros(0)
     best_min_split = 0
+    
     # First for loop to find the best min samples split
     for min_samples_split in min_samples_split_list:
         # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
@@ -59,6 +60,34 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
     plt.xlabel('min_samples_split')
     plt.ylabel('mse')
     plt.xticks(ticks=range(len(min_samples_split_list)), labels=min_samples_split_list)
+    plt.plot(mse_list_train)
+    plt.plot(mse_list_cv)
+    plt.legend(['Train', 'Validation'])
+
+    #Second for loop to find the best max_depth
+    for max_depth in max_depth_list:
+        # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
+        model = RandomForestRegressor(max_depth=max_depth,
+                                      random_state=1234).fit(x_train, y_train)
+        predictions_train = model.predict(x_train)  ## The predicted values for the train dataset
+        predictions_cv = model.predict(x_cv)  ## The predicted values for the test dataset
+        mse_train = mean_squared_error(predictions_train, y_train)
+        mse_cv = mean_squared_error(predictions_cv, y_cv)
+        mse_list_train.append(mse_train)
+        mse_list_cv.append(mse_cv)
+        all_mse_train = np.append(all_mse_train, mse_train)
+        all_mse_cv = np.append(all_mse_cv, mse_cv)
+        diff_mse = np.append(diff_mse, (mse_cv - mse_train))
+    for i, (v, j, k) in enumerate(zip(diff_mse, all_mse_train, all_mse_cv)):
+        if v < np.mean(diff_mse) and v > 0:
+            if j < np.mean(all_mse_train) and k < np.mean(all_mse_cv):
+                best_max_deph = max_depth_list[i]
+                break
+    plt.subplot(1, 3, 2)
+    plt.title('Train x Validation metrics')
+    plt.xlabel('max_depth')
+    plt.ylabel('mse')
+    plt.xticks(ticks=range(len(max_depth_list)), labels=max_depth_list)
     plt.plot(mse_list_train)
     plt.plot(mse_list_cv)
     plt.legend(['Train', 'Validation'])
