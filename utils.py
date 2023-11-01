@@ -33,3 +33,17 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
     mse_list_cv = []
     diff_mse = np.zeros(0)
     best_min_split = 0
+    # First for loop to find the best min samples split
+    for min_samples_split in min_samples_split_list:
+        # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
+        model = RandomForestRegressor(min_samples_split=min_samples_split,
+                                      random_state=1234).fit(x_train, y_train)
+        predictions_train = model.predict(x_train)  # The predicted values for the train dataset
+        predictions_cv = model.predict(x_cv)  # The predicted values for the test dataset
+        mse_train = mean_squared_error(predictions_train, y_train)
+        mse_cv = mean_squared_error(predictions_cv, y_cv)
+        mse_list_train.append(mse_train)
+        mse_list_cv.append(mse_cv)
+        all_mse_train = np.append(all_mse_train, mse_train)
+        all_mse_cv = np.append(all_mse_cv, mse_cv)
+        diff_mse = np.append(diff_mse, (mse_cv - mse_train))
