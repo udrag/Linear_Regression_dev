@@ -145,3 +145,15 @@ def feature_importance(x_train, y_train, best_min_split, best_max_deph, best_n_e
     :param threshold: gini score threshold above which the features will be selected
     :return: feature_importance - a list of selected features
     """
+    dt_model = RandomForestRegressor(
+        min_samples_split=best_min_split,
+        max_depth=best_max_deph,
+        n_estimators=best_n_estimators
+    )
+    dt_model.fit(x_train, y_train)
+    feature_importance = pd.concat([
+        pd.DataFrame(dt_model.feature_names_in_[dt_model.feature_importances_ > threshold], columns=['feature']),
+        pd.DataFrame(dt_model.feature_importances_[dt_model.feature_importances_ > threshold], columns=['gini'])],
+        axis=1).sort_values('gini', ascending=False)
+
+    return feature_importance
