@@ -133,17 +133,15 @@ def best_forest_regressor(x_train, y_train, x_cv, y_cv):
 
     return best_min_split, best_max_deph, best_n_estimators
 
-def best_forest_regressor(x_train, y_train, x_cv, y_cv):
+def feature_importance(x_train, y_train, best_min_split, best_max_deph, best_n_estimators, threshold=0):
     """
-    Computes the best number based on the provided data for the min samples split, max depth and n estimators.
-    These three will be further used for finding the best features based on forest regressor.
-    Finally, a graph will be produced to show the mean squared error for each parameter.
+    Computes the gini score for each feature and selects the best based on a threshold.
 
-    :param x_train: the train data sample of all the numeric independent features
+    :param x_train: the train data sample of all the numeric independent feature
     :param y_train: the target data sample for the train sample in a numeric format
-    :param x_cv: the cross-validation sample of all the numeric independent features
-    :param y_cv: the target data sample for the cross validation sample in a numeric format
-    :return: best_min_split - best min sample split number to be used in the forest regressor parameters
-             best_max_deph - best max depth number to be used in the forest regressor parameters
-             best_n_estimators - best n estimators number to be used in the forest regressor parameters
+    :param best_min_split: the number obtained from the best_forest_regressor function
+    :param best_max_deph: the number obtained from the best_forest_regressor function
+    :param best_n_estimators: the number obtained from the best_forest_regressor function
+    :param threshold: gini score threshold above which the features will be selected
+    :return: feature_importance - a list of selected features
     """
