@@ -230,3 +230,25 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv):
             mse_cv = mean_squared_error(y_cv, pred_cv)
             mse_cv_list.append(mse_cv)
         print(f"The MSE of the {d} polynial degree for the cross validation set is {mse_cv}")
+        
+        x_positions = np.arange(len(x_train.columns))
+        x_labels = x_train.columns
+
+        min_value = min(mse_train_list + mse_cv_list) * 0.95
+        max_value = min(mse_cv_list) * 2
+
+        axes[d - 1].set_title(f'Train x Validation x Test for {d} degree')
+        axes[d - 1].plot(x_positions, mse_train_list, label='Train')
+        axes[d - 1].plot(x_positions, mse_cv_list, label='Validation')
+        axes[d - 1].set_ylim(min_value, max_value)
+        axes[d - 1].set_xticks(x_positions)
+        axes[d - 1].set_xticklabels(x_labels, rotation=85)
+        axes[d - 1].set_xlabel('Features added')
+        axes[d - 1].set_ylabel('MSE')
+        axes[d - 1].legend()
+
+    # Hide any remaining empty subplots (if any)
+    for j in range(4, len(axes)):
+        fig.delaxes(axes[j])
+
+    return plt.show()
