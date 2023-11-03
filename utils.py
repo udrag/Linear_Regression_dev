@@ -192,7 +192,7 @@ def plot_features(x, y):
 
     return plt.show()
 
-def linear_regeression(x_train, y_train, x_cv, y_cv):
+def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv):
     """
     Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
     will transform the values of the feature through 4 polynomial degrees.
