@@ -191,3 +191,42 @@ def plot_features(x, y):
         fig.delaxes(axes[j])
 
     return plt.show()
+
+def linear_regeression(x_train, y_train, x_cv, y_cv):
+    """
+    Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
+    will transform the values of the feature through 4 polynomial degrees.
+
+    :param x_train: the independent variables values of the training set
+    :param y_train: the target values of training set
+    :param x_cv: the independent variables values of the cross validation set
+    :param y_cv: the target values of cross validation set
+    :return:
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10), constrained_layout=True)
+    axes = axes.flatten()
+
+    for d in range(1, 5):
+        mse_train_list = []
+        mse_cv_list = []
+
+        for i in range(1, len(x_train.columns) + 1):
+            standard = StandardScaler()
+            train_std = standard.fit_transform(x_train.iloc[:, 0:i])
+
+            polyn = PolynomialFeatures(degree=d, include_bias=False)
+            train_std_poly = polyn.fit_transform(train_std)
+
+            model = LinearRegression()
+            model.fit(train_std_poly, y_train)
+
+            pred_train = model.predict(train_std_poly)
+            mse_train = mean_squared_error(y_train, pred_train)
+            mse_train_list.append(mse_train)
+
+            x_cv_std = standard.transform(x_cv.iloc[:, 0:i])
+            x_cv_std_poly = polyn.transform(x_cv_std)
+            pred_cv = model.predict(x_cv_std_poly)
+            mse_cv = mean_squared_error(y_cv, pred_cv)
+            mse_cv_list.append(mse_cv)
+        print(f"The MSE of the {d} polynial degree for the cross validation set is {mse_cv}")
