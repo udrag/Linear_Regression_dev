@@ -157,3 +157,37 @@ def feature_importance(x_train, y_train, best_min_split, best_max_deph, best_n_e
         axis=1).sort_values('gini', ascending=False)
 
     return feature_importance
+
+def plot_features(x, y):
+    """
+    Visual assessment of the selected features on scatter plots.
+
+    :param x: the values on the X-axis
+    :param y: the values on the Y-axis
+    :return: plt.show() function that shows the plots
+    """
+    aspect_ratio = (8,5)
+    num_subplots = x.shape[1]
+    num_columns = 2
+    num_rows = (x.shape[1] + 1) // 2  # Calculate the number of rows based on the number of subplots
+
+    # Calculate the size of each subplot based on the aspect ratio
+    subplot_size = (5, 5)  # Default size
+    if aspect_ratio[0] > aspect_ratio[1]:
+        subplot_size = (subplot_size[0], subplot_size[0] * aspect_ratio[1] / aspect_ratio[0])
+    else:
+        subplot_size = (subplot_size[1] * aspect_ratio[0] / aspect_ratio[1], subplot_size[1])
+
+    fig, axes = plt.subplots((x.shape[1]+1) // 2, 2, figsize=(num_columns * subplot_size[0], num_rows * subplot_size[1]), constrained_layout=True)
+    # Flatten the axes array to access subplots one by one
+    axes = axes.flatten()
+
+    for i in range(x.shape[1]):
+        axes[i].scatter(x[x.columns[:][i]], y, s=2)
+        axes[i].set_xlabel(x.columns[i])
+        axes[i].set_ylabel('Temperature')
+    # Hide any remaining empty subplots (if any)
+    for j in range(x.shape[1], len(axes)):
+        fig.delaxes(axes[j])
+
+    return plt.show()
