@@ -279,3 +279,92 @@ def plot_actual_vs_predicted(y_test, *args, observations=30):
         plt.legend()
         plt.tight_layout()
     return plt.show()
+
+def gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1):
+    """
+    Performs linear regression with gradient descent to learn w and b. Updates w and b by taking
+    num_iters gradient steps with learning rate alpha.
+
+    :param x_train: Train sample
+    :param y_train: Train target values
+    :param x_cv: Cross Validation sample
+    :param y_cv: Cross Validation target values
+    :param x_test: the test sample of all the numeric independent features
+    :param y_test: the target data sample for the test sample in a numeric format
+    :param alpha: Learning rate
+    :param num_iters: number of iterations to run gradient descent
+    :param poly_degree: The degree of polynomial to transform the variables
+    :return: w - final weight coefficient
+             b - final bias coefficient
+             pred_test - predictions of the test sample
+             J_history - the cost value at each itteration
+    """
+
+    # Fit-transform train data
+    standard = StandardScaler()
+    train_std = standard.fit_transform(x_train)
+    polyn = PolynomialFeatures(degree=poly_degree, include_bias=False)
+    train_std_poly = polyn.fit_transform(train_std)
+    # Transform cross validation data
+    cv_std = standard.transform(x_cv)
+    cv_std_poly = polyn.transform(cv_std)
+    # Transform test data
+    test_std = standard.transform(x_test)
+    test_std_poly = polyn.transform(test_std)
+    # An array to store cost J and w's at each iteration primarily for observing cost reduction during development
+    J_history = []
+
+    y_train = y_train.to_numpy().reshape((-1,1)) # Reshape the target variable for the train sample
+    y_cv = y_cv.to_numpy().reshape((-1,1)) # Reshape the target variable for the cross validation sample
+    y_test = y_test.to_numpy().reshape((-1,1)) # Reshape the target variable for the test sample
+    m, n = train_std_poly.shape   #(number of examples, number of features)
+    w = np.zeros(n)
+    b = 0.
+    dj_dw = np.zeros((n,))
+    dj_db = 0.
+    cost = 0.0
+
+    for i in range(num_iters):
+        # Calculate the gradient and update the parameters
+        for j in range(m):
+            err = (np.dot(train_std_poly[j], w) + b) - y_train[j]
+            for f in range(n):
+                dj_dw[f] = dj_dw[f] + err * train_std_poly[j, f]
+            dj_db = dj_db + err
+        dj_dw = dj_dw / m
+        dj_db = dj_db / m
+
+        # Update Parameters using w, b, alpha and gradient
+        w = w - alpha * dj_dw
+        b = b - alpha * dj_db
+        # Stop gradient decent when the 4 decimals rounded of the last 10 cost function values equal to the current cost value
+        if len(J_history) > 100:
+            if (np.round(J_history[-10:-1],4) == np.round(cost, 4)).all() == True:
+                break
+            else:
+                # Print cost at specified intervals
+                if i% math.ceil(num_iters / 10) == 0:
+                    print(f"Iteration {i}: Cost {J_history[-1]}")
+        # Save cost J at each iteration
+        for c in range(m):
+            f_wb_i = np.dot(train_std_poly[c], w) + b
+            cost = cost + (f_wb_i - y_train[c])**2
+        cost = cost / (2 * m)
+        J_history.append(cost)
+
+    # Predict the train values based on final w and b values
+    pred_train = np.dot(train_std_poly, w) + b
+    # Calculate the mean squared error for the train sample
+    mse_train = mean_squared_error(y_train, pred_train)
+    # Predict the cross validation values based on final w and b values
+    pred_cv = np.dot(cv_std_poly, w) + b
+    # Calculate the mean squared error for the cross validation sample
+    mse_cv = mean_squared_error(y_cv, pred_cv)
+    # Predict the test values based on final w and b values
+    pred_test = np.dot(test_std_poly, w) + b
+    # Calculate the mean squared error for the test sample
+    mse_test = mean_squared_error(y_test, pred_test)
+    print(f"The mean squared error for the train sample is: {mse_train}, the mean squared error for the cross "
+          f"validation sample is: {mse_cv} and for the test set is: {mse_test}")
+
+    return w, b, pred_test, J_history
