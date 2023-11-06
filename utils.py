@@ -252,3 +252,30 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv):
         fig.delaxes(axes[j])
 
     return plt.show()
+
+def plot_actual_vs_predicted(y_test, *args, observations=30):
+    """
+    Plot the values of the actual y and the predicted ones. The first argument always should be the actual values of y.
+    :param *args: place any number of dataframe/numpay arrays to be plotted
+    :param observations: integer representing the number of last observations to plot.
+                         Default value of 30 last observations.
+    :return: plt.show()
+    """
+    observations = np.negative(observations+1)
+    check_test = pd.DataFrame(y_test)
+    for i, arg in enumerate(args):
+        check_test = pd.concat(
+            [check_test.reset_index(drop=True),
+             pd.DataFrame(arg).reset_index(drop=True)
+             ], axis=1)
+    plt.figure(figsize=(15,8))
+    plt.plot(check_test.iloc[observations:-1, 0], label='Actual', marker='o')
+    plt.xlabel('Prediction number')
+    plt.ylabel('MSE')
+    for i, _ in enumerate(args):
+        plt.xticks()
+        plt.plot(check_test.iloc[observations:-1,i+1], label=f'Predicted {i+1}', marker='o')
+        plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+        plt.legend()
+        plt.tight_layout()
+    return plt.show()
