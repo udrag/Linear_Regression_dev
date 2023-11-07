@@ -523,3 +523,28 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
             cost   = cost + (f_wb_i - y_train[c])**2
         cost = cost / (2 * m)
         J_history.append(cost)
+
+    # Predict the train values based on final w and b values
+    pred_train = np.dot(train_std_poly, w) + b
+    # Calculate the mean squared error for the train sample
+    mse_train  = mean_squared_error(y_train, pred_train)
+
+    # Transform cross validation data
+    cv_std       = standard_gd.transform(x_cv)
+    cv_std_poly  = poly_gd.transform(cv_std)
+    # Predict the cross validation values based on final w and b values
+    pred_cv      = np.dot(cv_std_poly, w) + b
+    # Calculate the mean squared error for the cross validation sample
+    mse_cv       = mean_squared_error(y_cv, pred_cv)
+
+    # Transform test data
+    test_std      = standard_gd.transform(x_test)
+    test_std_poly = poly_gd.transform(test_std)
+    # Predict the test values based on final w and b values
+    pred_test     = np.dot(test_std_poly, w) + b
+    # Calculate the mean squared error for the test sample
+    mse_test      = mean_squared_error(y_test, pred_test)
+    print(f"The mean squared error for the train sample is: {mse_train}, the mean squared error for the cross "
+          f"validation sample is: {mse_cv} and for the test set is: {mse_test}")
+
+    return w, b, standard_gd, poly_gd, pred_test, mse_test
