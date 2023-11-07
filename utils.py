@@ -494,3 +494,32 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
     dj_dw     = np.zeros((n,))
     dj_db     = 0.
     cost      = 0.0
+
+
+    for i in range(num_iters):
+        # Calculate the gradient and update the parameters
+        for j in range(m):
+            err   = (np.dot(train_std_poly[j], w) + b) - y_train[j]
+            for f in range(n):
+                dj_dw[f] = dj_dw[f] + err * train_std_poly[j, f]
+            dj_db = dj_db + err
+        dj_dw = dj_dw / m
+        dj_db = dj_db / m
+
+        # Update Parameters using w, b, alpha and gradient
+        w = w - alpha * dj_dw
+        b = b - alpha * dj_db
+        # Stop gradient decent when the 4 decimals rounded of the last 10 cost function values equal to the current cost value
+        if len(J_history) > 100:
+            if (np.round(J_history[-10:-1],4) == np.round(cost, 4)).all() == True:
+                break
+            else:
+                # Print cost at specified intervals
+                if i% math.ceil(num_iters / 10) == 0:
+                    print(f"Iteration {i}: Cost {J_history[-1]}")
+        # Save cost J at each iteration
+        for c in range(m):
+            f_wb_i = np.dot(train_std_poly[c], w) + b
+            cost   = cost + (f_wb_i - y_train[c])**2
+        cost = cost / (2 * m)
+        J_history.append(cost)
