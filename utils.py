@@ -455,3 +455,42 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
     print(f"The mean squared error of the selected model of {index_best_model + 1} polynomial degree on the test sample is {mse_test}")
 
     return selected_model, standard_selected, ploy_selected, pred_test, mse_test
+
+
+def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1):
+    """
+    Performs linear regression with gradient descent to learn w and b. Updates w and b by taking
+    num_iters gradient steps with learning rate alpha.
+
+    :param x_train: Train sample
+    :param y_train: Train target values
+    :param x_cv: Cross Validation sample
+    :param y_cv: Cross Validation target values
+    :param x_test: the test sample of all the numeric independent features
+    :param y_test: the target data sample for the test sample in a numeric format
+    :param alpha: Learning rate
+    :param num_iters: number of iterations to run gradient descent
+    :param poly_degree: The degree of polynomial to transform the variables
+    :return: w         - final weight coefficient
+             b         - final bias coefficient
+             pred_test - predictions of the test sample
+             mse_test  - the mean squared error on the test sample
+    """
+
+    # Fit-transform train data
+    standard_gd       = StandardScaler()
+    train_std         = standard_gd.fit_transform(x_train)
+    poly_gd           = PolynomialFeatures(degree=poly_degree, include_bias=False)
+    train_std_poly    = poly_gd.fit_transform(train_std)
+
+    # An array to store cost J and w's at each iteration primarily for observing cost reduction during development
+    J_history = []
+    y_train   = y_train.to_numpy().reshape((-1,1)) # Reshape the target variable for the train sample
+    y_cv      = y_cv.to_numpy().reshape((-1,1)) # Reshape the target variable for the cross validation sample
+    y_test    = y_test.to_numpy().reshape((-1,1)) # Reshape the target variable for the test sample
+    m, n      = train_std_poly.shape   #(number of examples, number of features)
+    w         = np.zeros(n)
+    b         = 0.
+    dj_dw     = np.zeros((n,))
+    dj_db     = 0.
+    cost      = 0.0
