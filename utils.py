@@ -383,46 +383,46 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
     :param y_test: the target data sample for the test sample in a numeric format
     :param max_degree: the maximal polynomial degree to transform the variables
     :return: selected_model - the selected model data
-             standardscale - scaling data to transform features
-             polynomialft - polynomial data to transform features
-             pred_test - predictions of the test sample
+             standardscale  - scaling data to transform features
+             polynomialft   - polynomial data to transform features
+             mse_test       - the mean squared error on the test sample
     """
-    cv_errors = np.zeros(0)
+    cv_errors    = np.zeros(0)
     train_errors = np.zeros(0)
-    all_models = {}
+    all_models   = {}
     all_standard = {}
-    all_poly = {}
-    degrees = {}
+    all_poly     = {}
+    degrees      = {}
     for i in range(1, max_degree + 1):
         # Fit-transform train data
-        standard = StandardScaler()
-        train_std = standard.fit_transform(x_train)
-        polyn = PolynomialFeatures(degree=i, include_bias=False)
-        train_std_poly = polyn.fit_transform(train_std)
+        standard             = StandardScaler()
+        train_std            = standard.fit_transform(x_train)
+        polyn                = PolynomialFeatures(degree=i, include_bias=False)
+        train_std_poly       = polyn.fit_transform(train_std)
         # Transform cross validation data
-        cv_std = standard.transform(x_cv)
-        cv_std_poly = polyn.transform(cv_std)
+        cv_std               = standard.transform(x_cv)
+        cv_std_poly          = polyn.transform(cv_std)
 
         # Initialize the model
-        model_ols = LinearRegression()
+        model_ols            = LinearRegression()
         # Fit the model
         model_ols.fit(train_std_poly, y_train)
         # Predict the train values based on final w and b values
-        pred_train = model_ols.predict(train_std_poly)
+        pred_train           = model_ols.predict(train_std_poly)
         # Calculate the mean squared error for the train sample
-        mse_train = mean_squared_error(y_train, pred_train)
+        mse_train            = mean_squared_error(y_train, pred_train)
         # Predict the cross validation values based on final w and b values
-        pred_cv = model_ols.predict(cv_std_poly)
+        pred_cv              = model_ols.predict(cv_std_poly)
         # Calculate the mean squared error for the cross validation sample
-        mse_cv = mean_squared_error(y_cv, pred_cv)
+        mse_cv               = mean_squared_error(y_cv, pred_cv)
         # Append the mse
-        cv_errors = np.append(cv_errors, mse_cv)
-        train_errors = np.append(train_errors, mse_train)
+        cv_errors            = np.append(cv_errors, mse_cv)
+        train_errors         = np.append(train_errors, mse_train)
         # Append the model data
-        all_models[str(i)] = model_ols
+        all_models[str(i)]   = model_ols
         all_standard[str(i)] = standard
-        all_poly[str(i)] = polyn
-        degrees[str(i)] = i
+        all_poly[str(i)]     = polyn
+        degrees[str(i)]      = i
         print(f"The mean squared error for the polynomial degree of {i} on the train sample is: {mse_train}, the mean squared error on the cross "
               f"validation sample is: {mse_cv}")
     x_values = range(1, max_degree+1)
@@ -442,14 +442,16 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
             index_best_model = i + 1
     print(f"The selected degree of polynomial is {index_best_model}")
     # Assign the best model
-    selected_model = all_models[str(index_best_model)]
+    selected_model    = all_models[str(index_best_model)]
     standard_selected = all_standard[str(index_best_model)]
-    ploy_selected = all_poly[str(index_best_model)]
+    ploy_selected     = all_poly[str(index_best_model)]
     # Transform test data
-    test_std = standard_selected.transform(x_test)
-    test_std_poly = ploy_selected.transform(test_std)
+    test_std          = standard_selected.transform(x_test)
+    test_std_poly     = ploy_selected.transform(test_std)
     # Predict the test values based on final w and b values
-    pred_test = selected_model.predict(test_std_poly)
+    pred_test         = selected_model.predict(test_std_poly)
     # Calculate the mean squared error for the test sample
-    mse_test = mean_squared_error(y_test, pred_test)
+    mse_test          = mean_squared_error(y_test, pred_test)
     print(f"The mean squared error of the selected model of {index_best_model + 1} polynomial degree on the test sample is {mse_test}")
+
+    return selected_model, standard_selected, ploy_selected, pred_test, mse_test
