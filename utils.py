@@ -8,130 +8,74 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense
 import matplotlib.pyplot as plt
 
-def best_forest_regressor(x_train, y_train, x_cv, y_cv):
-    """
-    Computes the best number based on the provided data for the min samples split, max depth and n estimators.
-    These three will be further used for finding the best features based on forest regressor.
-    Finally, a graph will be produced to show the mean squared error for each parameter.
+class BestParam:
 
-    :param x_train: the train data sample of all the numeric independent features
-    :param y_train: the target data sample for the train sample in a numeric format
-    :param x_cv: the cross-validation sample of all the numeric independent features
-    :param y_cv: the target data sample for the cross validation sample in a numeric format
-    :return: best_min_split - best min sample split number to be used in the forest regressor parameters
-             best_max_deph - best max depth number to be used in the forest regressor parameters
-             best_n_estimators - best n estimators number to be used in the forest regressor parameters
-    """
+    @staticmethod
+    def model_fit_and_predict(params, value, x_train, y_train, x_cv, **kwargs):
+        model = RandomForestRegressor(**params, **kwargs)
+        model.fit(x_train, y_train)
+        predictions_train = model.predict(x_train)
+        predictions_cv = model.predict(x_cv)
+        mse_train = mean_squared_error(y_train, predictions_train)
+        mse_cv = mean_squared_error(y_cv, predictions_cv)
+        return mse_train, mse_cv, abs(mse_cv - mse_train), value
 
-    min_samples_split_list = [2, 10, 30, 50, 100, 200, 300, 400, 500, 700, 800]
-    max_depth_list = [2, 4, 8, 16, 32, 64, 128, None]
-    n_estimators_list = [10, 50, 100, 500, 1000]
+    @staticmethod
+    def find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, **kwargs):
+        results = pd.DataFrame([BestParam.model_fit_and_predict({param_name: param}, param, x_train, y_train, x_cv, **kwargs)
+                                for param in param_range],
+                               columns=['mse_train', 'mse_cv', 'mse_diff', param_name])
+        means = results.mean()
+        stds = results.std()
+        distance_from_mean = results.apply(lambda x: np.abs(x - means) / stds, axis=1)
+        total_distance = distance_from_mean.sum(axis=1)
+        min_distance_index = total_distance.idxmin()
+        best_param_value = results.loc[min_distance_index, param_name]
+        return results, best_param_value, min_distance_index
 
-    all_mse_train = np.zeros(0)
-    all_mse_cv = np.zeros(0)
-    mse_list_train = []
-    mse_list_cv = []
-    diff_mse = np.zeros(0)
-    best_min_split = 0
-    
-    # First for loop to find the best min samples split
-    for min_samples_split in min_samples_split_list:
-        # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
-        model = RandomForestRegressor(min_samples_split=min_samples_split,
-                                      random_state=1234).fit(x_train, y_train)
-        predictions_train = model.predict(x_train)  # The predicted values for the train dataset
-        predictions_cv = model.predict(x_cv)  # The predicted values for the test dataset
-        mse_train = mean_squared_error(predictions_train, y_train)
-        mse_cv = mean_squared_error(predictions_cv, y_cv)
-        mse_list_train.append(mse_train)
-        mse_list_cv.append(mse_cv)
-        all_mse_train = np.append(all_mse_train, mse_train)
-        all_mse_cv = np.append(all_mse_cv, mse_cv)
-        diff_mse = np.append(diff_mse, (mse_cv - mse_train))
+    @staticmethod
+    def plot_results(results, best_param_value, min_distance_index, suplot, xlabel):
+        plt.subplot(1, 3, suplot)
+        plt.title('Train x Validation Metrics')
+        plt.xlabel(xlabel)
+        plt.ylabel('mse')
+        plt.xticks(ticks=range(len(results[xlabel])), labels=results[xlabel])
+        plt.plot(results['mse_train'])
+        plt.plot(results['mse_cv'])
+        plt.vlines(min_distance_index, 0, results.loc[min_distance_index, ['mse_train', 'mse_cv']].max() * 1.1, color='r', linestyle='--')
+        plt.legend(['Train', 'Validation'])
 
-    for i, (v, j, k) in enumerate(zip(diff_mse, all_mse_train, all_mse_cv)):
-        if v < np.mean(diff_mse) and v > 0:
-            if j < np.mean(all_mse_train) and k < np.mean(all_mse_cv):
-                best_min_split = min_samples_split_list[i]
-                break
-    plt.figure(figsize=(12, 4))
-    plt.subplot(1, 3, 1)
-    plt.title('Train x Validation metrics')
-    plt.xlabel('min_samples_split')
-    plt.ylabel('mse')
-    plt.xticks(ticks=range(len(min_samples_split_list)), labels=min_samples_split_list)
-    plt.plot(mse_list_train)
-    plt.plot(mse_list_cv)
-    plt.legend(['Train', 'Validation'])
+    @staticmethod
+    def best_forest_regressor(x_train, y_train, x_cv, y_cv):
+        """
+        Computes the best number based on the provided data for the min samples split, max depth and n estimators.
+        These three will be further used for finding the best features based on forest regressor.
+        Finally, a graph will be produced to show the mean squared error for each parameter.
 
-    #Second for loop to find the best max_depth
-    for max_depth in max_depth_list:
-        # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
-        model = RandomForestRegressor(max_depth=max_depth,
-                                      random_state=1234).fit(x_train, y_train)
-        predictions_train = model.predict(x_train)  ## The predicted values for the train dataset
-        predictions_cv = model.predict(x_cv)  ## The predicted values for the test dataset
-        mse_train = mean_squared_error(predictions_train, y_train)
-        mse_cv = mean_squared_error(predictions_cv, y_cv)
-        mse_list_train.append(mse_train)
-        mse_list_cv.append(mse_cv)
-        all_mse_train = np.append(all_mse_train, mse_train)
-        all_mse_cv = np.append(all_mse_cv, mse_cv)
-        diff_mse = np.append(diff_mse, (mse_cv - mse_train))
-    for i, (v, j, k) in enumerate(zip(diff_mse, all_mse_train, all_mse_cv)):
-        if v < np.mean(diff_mse) and v > 0:
-            if j < np.mean(all_mse_train) and k < np.mean(all_mse_cv):
-                best_max_deph = max_depth_list[i]
-                break
-    plt.subplot(1, 3, 2)
-    plt.title('Train x Validation metrics')
-    plt.xlabel('max_depth')
-    plt.ylabel('mse')
-    plt.xticks(ticks=range(len(max_depth_list)), labels=max_depth_list)
-    plt.plot(mse_list_train)
-    plt.plot(mse_list_cv)
-    plt.legend(['Train', 'Validation'])
+        :param x_train: the train data sample of all the numeric independent features
+        :param y_train: the target data sample for the train sample in a numeric format
+        :param x_cv: the cross-validation sample of all the numeric independent features
+        :param y_cv: the target data sample for the cross validation sample in a numeric format
+        :return: best_min_split - best min sample split number to be used in the forest regressor parameters
+         best_max_deph - best max depth number to be used in the forest regressor parameters
+         best_n_estimators - best n estimators number to be used in the forest regressor parameters
+        """
+        plt.figure(figsize=(12, 4))
 
-    #Third loop to find the best n estimators
-    mse_list_train = []
-    mse_list_cv = []
-    all_mse_train = np.zeros(0)
-    all_mse_cv = np.zeros(0)
-    diff_mse = np.zeros(0)
-    best_n_estimators = 0
+        param_ranges = [[2, 10, 30, 50, 100, 200, 300, 400],
+                        [2, 4, 8, 16, 32, 64, 128],
+                        [10, 50, 100, 500, 1000]]
+        param_names = ['min_samples_split', 'max_depth', 'n_estimators']
 
-    for n_estimators in n_estimators_list:
-        # You can fit the model at the same time you define it, because the fit function returns the fitted estimator.
-        model = RandomForestRegressor(n_estimators=n_estimators,
-                                      random_state=1234).fit(x_train, y_train)
-        predictions_train = model.predict(x_train)  ## The predicted values for the train dataset
-        predictions_cv = model.predict(x_cv)  ## The predicted values for the test dataset
-        mse_train = mean_squared_error(predictions_train, y_train)
-        mse_cv = mean_squared_error(predictions_cv, y_cv)
-        mse_list_train.append(mse_train)
-        mse_list_cv.append(mse_cv)
-        all_mse_train = np.append(all_mse_train, mse_train)
-        all_mse_cv = np.append(all_mse_cv, mse_cv)
-        diff_mse = np.append(diff_mse, (mse_cv - mse_train))
-    for i, (v, j, k) in enumerate(zip(diff_mse, all_mse_train, all_mse_cv)):
-        if v < np.mean(diff_mse) and v > 0:
-            if j < np.mean(all_mse_train) and k < np.mean(all_mse_cv):
-                best_n_estimators = n_estimators_list[i]
-                break
-    plt.subplot(1, 3, 3)
-    plt.title('Train x Validation metrics')
-    plt.xlabel('max_depth')
-    plt.ylabel('mse')
-    plt.xticks(ticks=range(len(n_estimators_list)), labels=n_estimators_list)
-    plt.plot(mse_list_train)
-    plt.plot(mse_list_cv)
-    plt.legend(['Train', 'Validation'])
+        best_param_values = []
+        for i, (param_range, param_name) in enumerate(zip(param_ranges, param_names), 1):
+            results, best_param_value, min_distance_index = BestParam.find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, random_state=1234)
+            BestParam.plot_results(results, best_param_value, min_distance_index, i, param_name)
+            best_param_values.append(best_param_value)
 
-    plt.tight_layout()
-    print(f"The selected best min splits is {best_min_split}, best max depth is {best_max_deph} "
-          f"and the best n estimators is {best_n_estimators}.")
-
-    return best_min_split, best_max_deph, best_n_estimators
+        plt.tight_layout()
+        print(f"The selected best min splits is {best_param_values[0]}, best max depth is {best_param_values[1]} and the best n estimators is {best_param_values[2]}.")
+        return best_param_values[0], best_param_values[1], best_param_values[2]
 
 def feature_importance(x_train, y_train, best_min_split, best_max_deph, best_n_estimators, threshold=0):
     """
