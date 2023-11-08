@@ -77,28 +77,27 @@ class BestParam:
         print(f"The selected best min splits is {best_param_values[0]}, best max depth is {best_param_values[1]} and the best n estimators is {best_param_values[2]}.")
         return best_param_values[0], best_param_values[1], best_param_values[2]
 
-def feature_importance(x_train, y_train, best_min_split, best_max_deph, best_n_estimators, threshold=0):
+def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     """
-    Computes the gini score for each feature and selects the best based on a threshold.
+    Computes the gini score for each feature using a Random Forest Regressor with the specified parameters.
 
-    :param x_train: the train data sample of all the numeric independent feature
-    :param y_train: the target data sample for the train sample in a numeric format
-    :param best_min_split: the number obtained from the best_forest_regressor function
-    :param best_max_deph: the number obtained from the best_forest_regressor function
-    :param best_n_estimators: the number obtained from the best_forest_regressor function
-    :param threshold: gini score threshold above which the features will be selected
-    :return: feature_importance - a list of selected features
+    :param x_train: the train data sample of all the numeric independent features
+    :param y_train: the target data sample for the train sample in numeric format
+    :param min_split: the number of min_samples_split for the regressor
+    :param max_depth: the number of max_depth for the regressor
+    :param n_estimators: the number of n_estimators for the regressor
+    :return: feature_importance - a DataFrame of selected features and their respective Gini scores
     """
-    dt_model = RandomForestRegressor(
-        min_samples_split=best_min_split,
-        max_depth=best_max_deph,
-        n_estimators=best_n_estimators
-    )
-    dt_model.fit(x_train, y_train)
-    feature_importance = pd.concat([
-        pd.DataFrame(dt_model.feature_names_in_[dt_model.feature_importances_ > threshold], columns=['feature']),
-        pd.DataFrame(dt_model.feature_importances_[dt_model.feature_importances_ > threshold], columns=['gini'])],
-        axis=1).sort_values('gini', ascending=False)
+    # Create and fit the model
+    model = RandomForestRegressor(min_samples_split=min_split, max_depth=max_depth, n_estimators=n_estimators)
+    model.fit(x_train, y_train)
+
+    # Compute the feature importance
+    significant_features_indices = model.feature_importances_ > 0
+    features = pd.DataFrame(model.feature_names_in_[significant_features_indices], columns=['feature'])
+    gini_scores = pd.DataFrame(model.feature_importances_[significant_features_indices], columns=['gini'])
+
+    feature_importance = pd.concat([features, gini_scores], axis=1).sort_values('gini', ascending=False)
 
     return feature_importance
 
@@ -112,8 +111,8 @@ def plot_features(x, y):
     """
     aspect_ratio = (8,5)
     num_subplots = x.shape[1]
-    num_columns = 2
-    num_rows = (x.shape[1] + 1) // 2  # Calculate the number of rows based on the number of subplots
+    num_columns  = 2
+    num_rows     = (x.shape[1] + 1) // 2  # Calculate the number of rows based on the number of subplots
 
     # Calculate the size of each subplot based on the aspect ratio
     subplot_size = (5, 5)  # Default size
@@ -129,7 +128,7 @@ def plot_features(x, y):
     for i in range(x.shape[1]):
         axes[i].scatter(x[x.columns[:][i]], y, s=2)
         axes[i].set_xlabel(x.columns[i])
-        axes[i].set_ylabel('Temperature')
+        axes[i].set_ylabel(y.name)
     # Hide any remaining empty subplots (if any)
     for j in range(x.shape[1], len(axes)):
         fig.delaxes(axes[j])
