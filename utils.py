@@ -9,24 +9,27 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, LeakyReLU
+
+import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 class BestParam:
 
     @staticmethod
-    def model_fit_and_predict(params, value, x_train, y_train, x_cv, **kwargs):
+    def model_fit_and_predict(params, value, x_train, y_train, x_cv, y_cv, **kwargs):
         model = RandomForestRegressor(**params, **kwargs)
         model.fit(x_train, y_train)
         predictions_train = model.predict(x_train)
         predictions_cv = model.predict(x_cv)
         mse_train = mean_squared_error(y_train, predictions_train)
         mse_cv = mean_squared_error(y_cv, predictions_cv)
-        return mse_train, mse_cv, abs(mse_cv - mse_train), value
+        return mse_train, mse_cv, mse_cv - mse_train, value
 
     @staticmethod
     def find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, **kwargs):
-        results = pd.DataFrame([BestParam.model_fit_and_predict({param_name: param}, param, x_train, y_train, x_cv, **kwargs)
+        results = pd.DataFrame([BestParam.model_fit_and_predict(
+                        {param_name: param}, param, x_train, y_train, x_cv, y_cv, **kwargs)
                                 for param in param_range],
                                columns=['mse_train', 'mse_cv', 'mse_diff', param_name])
         means = results.mean()
@@ -35,18 +38,20 @@ class BestParam:
         total_distance = distance_from_mean.sum(axis=1)
         min_distance_index = total_distance.idxmin()
         best_param_value = results.loc[min_distance_index, param_name]
-        return results, best_param_value, min_distance_index
+        return results, best_param_value, i
 
     @staticmethod
-    def plot_results(results, best_param_value, min_distance_index, suplot, xlabel):
-        plt.subplot(1, 3, suplot)
+    def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
+        plt.subplot(1, 3, subplot)
         plt.title('Train x Validation Metrics')
         plt.xlabel(xlabel)
         plt.ylabel('mse')
         plt.xticks(ticks=range(len(results[xlabel])), labels=results[xlabel])
         plt.plot(results['mse_train'])
         plt.plot(results['mse_cv'])
-        plt.vlines(min_distance_index, 0, results.loc[min_distance_index, ['mse_train', 'mse_cv']].max() * 1.1, color='r', linestyle='--')
+        plt.vlines(min_distance_index, 0, results.loc[min_distance_index, ['mse_train', 'mse_cv']].max() * 1.1,
+                   color='r', linestyle='--')
+        plt.scatter(results[results[xlabel] == best_param_value].index[0], 0, color='skyblue', edgecolor='red', linewidth=2)
         plt.legend(['Train', 'Validation'])
 
     @staticmethod
@@ -73,12 +78,15 @@ class BestParam:
 
         best_param_values = []
         for i, (param_range, param_name) in enumerate(zip(param_ranges, param_names), 1):
-            results, best_param_value, min_distance_index = BestParam.find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, random_state=1234)
-            BestParam.plot_results(results, best_param_value, min_distance_index, i, param_name)
+            results, best_param_value, min_distance_index = BestParam.find_best_param_values(
+                param_range, param_name, x_train, y_train, x_cv, y_cv, random_state=1234)
+            BestParam.plot_results(
+                results, best_param_value, min_distance_index, i, param_name)
             best_param_values.append(best_param_value)
 
         plt.tight_layout()
-        print(f"The selected best min splits is {best_param_values[0]}, best max depth is {best_param_values[1]} and the best n estimators is {best_param_values[2]}.")
+        print(f"The selected best min splits is {best_param_values[0]}, best max depth is {best_param_values[1]} "
+              f"and the best n estimators is {best_param_values[2]}.")
         return best_param_values[0], best_param_values[1], best_param_values[2]
 
 
@@ -104,6 +112,19 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     gini_scores = pd.DataFrame(model.feature_importances_[significant_features_indices], columns=['gini'])
 
     feature_importance = pd.concat([features, gini_scores], axis=1).sort_values('gini', ascending=False)
+
+    # Optionally, plot the feature importances
+    plt.figure(figsize=(10, 6))
+    plt.barh(y=feature_importance['feature'], width=feature_importance['gini'], color='skyblue')
+    plt.title('Feature Importance')
+    plt.xlabel('Importance')
+    plt.ylabel('Features')
+
+    # Iterate over the features and Gini scores to add labels to the bars
+    for i, v in enumerate(feature_importance['gini']):
+        plt.text(v, i, " "+str(round(v, 4)), va = 'center')
+
+    plt.gca().invert_yaxis()
 
     return feature_importance
 
@@ -267,10 +288,8 @@ def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_d
         degrees[str(i)]      = i
         print(f"Development of the model with polynomial degree of {i}\nThe MSE for the train set is {mse_train} and the Cross Validation is: {mse_cv}")
 
-    diff_mse = cv_errors - train_errors
-    for i, (v, j, k) in enumerate(zip(diff_mse, train_errors, cv_errors)):
-        if v <= np.min(diff_mse)*1.2 and v > 0 and k < np.min(cv_errors) * 1.2:
-            index_best_model = i + 1
+    # Index the smallest CV mse value
+    index_best_model = cv_errors.argmin() + 1
 
     x_values = range(1, max_degree+1)
 
@@ -359,15 +378,13 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
     plt.xlabel('Polynomial degrees')
     plt.ylabel('MSE')
     plt.xticks(ticks=x_values, labels=x_values)
+    plt.ylim(0, cv_errors[0]*5)
     plt.plot(x_values, train_errors)
     plt.plot(x_values, cv_errors)
     plt.legend(['Train', 'Validation'])
     plt.tight_layout()
     # Index the smallest CV mse value
-    diff_mse = cv_errors - train_errors
-    for i, (v, j, k) in enumerate(zip(diff_mse, train_errors, cv_errors)):
-        if v < np.min(diff_mse)*1.4 and v > 0 and k < np.min(cv_errors)*1.2:
-            index_best_model = i + 1
+    index_best_model = cv_errors.argmin() + 1
     print(f"The selected degree of polynomial is {index_best_model}")
     # Assign the best model
     selected_model    = all_models[str(index_best_model)]
@@ -384,7 +401,7 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
 
     return selected_model, standard_selected, ploy_selected, pred_test, mse_test
 
-def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1):
+def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1, last_errors=10, cost_decimals=4):
     """
     Performs linear regression with gradient descent to learn w and b. Updates w and b by taking
     num_iters gradient steps with learning rate alpha.
@@ -398,12 +415,14 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
     :param alpha: Learning rate
     :param num_iters: number of iterations to run gradient descent
     :param poly_degree: The degree of polynomial to transform the variables
+    :param last_errors: The number of previous values of the cost function to be similar
+    :param cost_decimals: The number of decimals to compare the last value of the cost function and last_errors
     :return: w         - final weight coefficient
              b         - final bias coefficient
              pred_test - predictions of the test sample
              mse_test  - the mean squared error on the test sample
     """
-
+    last_errors = np.negative(last_errors)
     # Fit-transform train data
     standard_gd       = StandardScaler()
     train_std         = standard_gd.fit_transform(x_train)
@@ -437,7 +456,7 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
         b = b - alpha * dj_db
         # Stop gradient decent when the 4 decimals rounded of the last 10 cost function values equal to the current cost value
         if len(J_history) > 100:
-            if (np.round(J_history[-10:-1],4) == np.round(cost, 4)).all() == True:
+            if (np.round(J_history[last_errors:-1],cost_decimals) == np.round(cost, cost_decimals)).all() == True:
                 break
             else:
                 # Print cost at specified intervals
@@ -522,4 +541,21 @@ def plot_actual_vs_predicted(y_test, *args, observations=30):
         plt.legend()
         plt.tight_layout()
     return plt.show()
+
+def plot_correlation_heatmap(x_train, y_train, fig_size=(14, 10), cmap='coolwarm', linewidth=.5, annot_kws={"size": 10}):
+    # Compute correlation and round off to 2 decimal places
+    df = pd.concat([y_train,x_train], axis=1)
+    corr = np.around(df.corr(), decimals=2)
+
+    # Create a mask
+    mask = np.zeros_like(corr)
+    mask[np.triu_indices_from(mask)] = True
+
+    # Plotting
+    fig, axes = plt.subplots(figsize=fig_size)
+    sns.heatmap(corr, mask=mask, linewidths=linewidth, cmap=cmap,
+                annot=True, annot_kws=annot_kws, fmt=".2f")
+    plt.title('Correlation of the selected variables', color='black')
+
+    plt.show()
 # %%
