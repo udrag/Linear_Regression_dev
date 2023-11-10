@@ -14,6 +14,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+from collections import defaultdict
+
+
 class BestParam:
 
     @staticmethod
@@ -24,21 +27,22 @@ class BestParam:
         predictions_cv = model.predict(x_cv)
         mse_train = mean_squared_error(y_train, predictions_train)
         mse_cv = mean_squared_error(y_cv, predictions_cv)
-        return mse_train, mse_cv, mse_cv - mse_train, value
+        return mse_train, mse_cv, mse_train / mse_cv, value
 
     @staticmethod
     def find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, **kwargs):
         results = pd.DataFrame([BestParam.model_fit_and_predict(
-                        {param_name: param}, param, x_train, y_train, x_cv, y_cv, **kwargs)
-                                for param in param_range],
-                               columns=['mse_train', 'mse_cv', 'mse_diff', param_name])
-        means = results.mean()
-        stds = results.std()
-        distance_from_mean = results.apply(lambda x: np.abs(x - means) / stds, axis=1)
-        total_distance = distance_from_mean.sum(axis=1)
-        min_distance_index = total_distance.idxmin()
-        best_param_value = results.loc[min_distance_index, param_name]
-        return results, best_param_value, i
+            {param_name: param}, param, x_train, y_train, x_cv, y_cv, **kwargs)
+            for param in param_range],
+            columns=['mse_train', 'mse_cv', 'mse_prop', param_name])
+        if results[results.iloc[:, 2] < 0.6].iloc[:, 2].nlargest(1).item() > 0.2:
+            min_distance_index = results[results.iloc[:, 2] < 0.6].iloc[:, 2].nlargest(1).index[0]
+        else:
+            min_distance_index = \
+            results[results.iloc[:, 2] < results[results.iloc[:, 2] < 0.6].iloc[:, 2].mean()].iloc[:, 2].nlargest(1).index[0]
+        best_param_value = results[param_name][min_distance_index]
+
+        return results, best_param_value, min_distance_index
 
     @staticmethod
     def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
@@ -73,22 +77,21 @@ class BestParam:
 
         param_ranges = [[2, 10, 30, 50, 100, 200, 300, 400],
                         [2, 4, 8, 16, 32, 64, 128],
-                        [10, 50, 100, 500, 1000]]
+                        [10, 25, 50, 100, 250, 500]]
         param_names = ['min_samples_split', 'max_depth', 'n_estimators']
-
+        results_all = pd.DataFrame()
         best_param_values = []
         for i, (param_range, param_name) in enumerate(zip(param_ranges, param_names), 1):
             results, best_param_value, min_distance_index = BestParam.find_best_param_values(
                 param_range, param_name, x_train, y_train, x_cv, y_cv, random_state=1234)
-            BestParam.plot_results(
-                results, best_param_value, min_distance_index, i, param_name)
+            results_all = pd.concat([results, results_all], axis=1)
+            BestParam.plot_results(results, best_param_value, min_distance_index, i, param_name)
             best_param_values.append(best_param_value)
 
         plt.tight_layout()
         print(f"The selected best min splits is {best_param_values[0]}, best max depth is {best_param_values[1]} "
               f"and the best n estimators is {best_param_values[2]}.")
         return best_param_values[0], best_param_values[1], best_param_values[2]
-
 
 
 def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
