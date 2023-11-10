@@ -115,8 +115,8 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     gini_scores = pd.DataFrame(model.feature_importances_[significant_features_indices], columns=['gini'])
 
     feature_importance = pd.concat([features, gini_scores], axis=1).sort_values('gini', ascending=False)
-
-    # Optionally, plot the feature importances
+    feature_importance.reset_index(drop=True, inplace=True)
+    # Plot the feature importance
     plt.figure(figsize=(10, 6))
     plt.barh(y=feature_importance['feature'], width=feature_importance['gini'], color='skyblue')
     plt.title('Feature Importance')
@@ -125,45 +125,39 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
 
     # Iterate over the features and Gini scores to add labels to the bars
     for i, v in enumerate(feature_importance['gini']):
-        plt.text(v, i, " "+str(round(v, 4)), va = 'center')
-
+        plt.text(v, i, " " + str(round(v, 4)), va='center')
     plt.gca().invert_yaxis()
 
     return feature_importance
 
-def plot_features(x, y):
-    """
-    Visual assessment of the selected features on scatter plots.
 
-    :param x: the values on the X-axis
-    :param y: the values on the Y-axis
-    :return: plt.show() function that shows the plots
-    """
-    aspect_ratio = (8,5)
-    num_subplots = x.shape[1]
-    num_columns  = 2
-    num_rows     = (x.shape[1] + 1) // 2  # Calculate the number of rows based on the number of subplots
+def plot_selected_features(selected_features, all_features):
+    # Assign Gini values and feature names
+    gini_values = all_features['gini'].round(4)
+    all_features = pd.concat([selected_features, all_features[~all_features['feature'].isin(selected_features['feature'])]])['feature']
 
-    # Calculate the size of each subplot based on the aspect ratio
-    subplot_size = (5, 5)  # Default size
-    if aspect_ratio[0] > aspect_ratio[1]:
-        subplot_size = (subplot_size[0], subplot_size[0] * aspect_ratio[1] / aspect_ratio[0])
-    else:
-        subplot_size = (subplot_size[1] * aspect_ratio[0] / aspect_ratio[1], subplot_size[1])
+    # Assign color based on whether the feature is selected or not
+    colors = ['red' if feature in selected_features else 'blue' for feature in all_features]
 
-    fig, axes = plt.subplots((x.shape[1]+1) // 2, 2, figsize=(num_columns * subplot_size[0], num_rows * subplot_size[1]), constrained_layout=True)
-    # Flatten the axes array to access subplots one by one
-    axes = axes.flatten()
+    # Plot
+    plt.figure(figsize=[10, 8])
+    sns.barplot(x=gini_values, y=all_features, palette=colors)
 
-    for i in range(x.shape[1]):
-        axes[i].scatter(x[x.columns[:][i]], y, s=2)
-        axes[i].set_xlabel(x.columns[i])
-        axes[i].set_ylabel(y.name)
-    # Hide any remaining empty subplots (if any)
-    for j in range(x.shape[1], len(axes)):
-        fig.delaxes(axes[j])
+    # Show values on the graph
+    for index, value in enumerate(gini_values):
+        plt.text(value, index, str(value))
 
-    return plt.show()
+    # Assuming that the selected features are at the beginning of the list
+    last_selected_feature_index = len(selected_features) - 0.5
+
+    # Draw a horizontal line below the last selected feature
+    plt.axhline(last_selected_feature_index, color='green', linestyle='--')
+
+    plt.title('Gini values of Features')
+    plt.xlabel('Gini values')
+    plt.ylabel('Features')
+
+    plt.show()
 
 def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, selected_features):
     """
