@@ -133,9 +133,6 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
 
     return feature_importance
 
-
-
-
 def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4):
     """
     Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
@@ -226,7 +223,6 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
 
     return selected_features
-
 
 def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degree=4, epochs=300, verbose=0, learning_rate=0.001):
     """
@@ -505,7 +501,6 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
 
     return w, b, standard_gd, poly_gd, pred_test, mse_test
 
-
 class predict_gd:
     def __init__(self, w, b):
         self.w = w
@@ -528,12 +523,6 @@ def best_regression(all_mse, all_models, all_standardscaler, all_polyft):
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
     return selected_model, standardization, polynomial_transformation
-
-
-
-
-
-
 
 ########################################################
 #           Section 2: Polt functions                  #
