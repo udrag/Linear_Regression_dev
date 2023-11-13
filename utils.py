@@ -16,6 +16,7 @@ from matplotlib.ticker import MaxNLocator
 
 from collections import defaultdict
 
+
 ########################################################
 #           Section 1: Modelling functions             #
 ########################################################
@@ -24,6 +25,17 @@ class BestParam:
 
     @staticmethod
     def model_fit_and_predict(params, value, x_train, y_train, x_cv, y_cv, **kwargs):
+        """
+        Initialize a Random Forest Regressor with the predictions for train and cross validation sets.
+        :param params: list of parameter names
+        :param value: values of the parameters
+        :param x_train: train sample
+        :param y_train: target of the train sample
+        :param x_cv: cross validation sample
+        :param y_cv: target of the cross validation sample
+        :param kwargs: supplimentary arguments
+        :return: mse_train, mse_cv, mse_train / mse_cv, value
+        """
         model = RandomForestRegressor(**params, **kwargs)
         model.fit(x_train, y_train)
         predictions_train = model.predict(x_train)
@@ -34,6 +46,17 @@ class BestParam:
 
     @staticmethod
     def find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, **kwargs):
+        """
+        Find the best parameters for Random Forest Regressor.
+        :param param_range: range of parameter's values
+        :param param_name: parameter's name
+        :param x_train: train sample
+        :param y_train: target of the train sample
+        :param x_cv: cross validation sample
+        :param y_cv: target of the cross validation sample
+        :param kwargs: supplimentary arguments
+        :return: results, best_param_value, min_distance_index
+        """
         results = pd.DataFrame([BestParam.model_fit_and_predict(
             {param_name: param}, param, x_train, y_train, x_cv, y_cv, **kwargs)
             for param in param_range],
@@ -42,13 +65,22 @@ class BestParam:
             min_distance_index = results[results.iloc[:, 2] < 0.6].iloc[:, 2].nlargest(1).index[0]
         else:
             min_distance_index = \
-            results[results.iloc[:, 2] < results[results.iloc[:, 2] < 0.6].iloc[:, 2].mean()].iloc[:, 2].nlargest(1).index[0]
+                results[results.iloc[:, 2] < results[results.iloc[:, 2] < 0.6].iloc[:, 2].mean()].iloc[:, 2].nlargest(
+                    1).index[0]
         best_param_value = results[param_name][min_distance_index]
 
         return results, best_param_value, min_distance_index
 
     @staticmethod
     def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
+        """
+        Plot the results of the mse of the parameters of the Random Forest Regressor.
+        :param results: the values from find_best_param_values return variable
+        :param best_param_value: best values for the parameters
+        :param min_distance_index: the smallest index based on the data
+        :param subplot: the number of subplots
+        :param xlabel: the x-axis label
+        """
         plt.subplot(1, 3, subplot)
         plt.title('Train x Validation Metrics')
         plt.xlabel(xlabel)
@@ -58,7 +90,8 @@ class BestParam:
         plt.plot(results['mse_cv'])
         plt.vlines(min_distance_index, 0, results.loc[min_distance_index, ['mse_train', 'mse_cv']].max() * 1.1,
                    color='r', linestyle='--')
-        plt.scatter(results[results[xlabel] == best_param_value].index[0], 0, color='skyblue', edgecolor='red', linewidth=2)
+        plt.scatter(results[results[xlabel] == best_param_value].index[0], 0, color='skyblue', edgecolor='red',
+                    linewidth=2)
         plt.legend(['Train', 'Validation'])
 
     @staticmethod
@@ -117,11 +150,11 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     features = pd.DataFrame(model.feature_names_in_[significant_features_indices], columns=['feature'])
     gini_scores = pd.DataFrame(model.feature_importances_[significant_features_indices], columns=['gini'])
 
-    feature_importance = pd.concat([features, gini_scores], axis=1).sort_values('gini', ascending=False)
-    feature_importance.reset_index(drop=True, inplace=True)
+    ft_importance = pd.concat([features, gini_scores], axis=1).sort_values('gini', ascending=False)
+    ft_importance.reset_index(drop=True, inplace=True)
     # Plot the feature importance
     plt.figure(figsize=(10, 6))
-    plt.barh(y=feature_importance['feature'], width=feature_importance['gini'], color='skyblue')
+    plt.barh(y=ft_importance['feature'], width=ft_importance['gini'], color='skyblue')
     plt.title('Feature Importance')
     plt.xlabel('Importance')
     plt.ylabel('Features')
@@ -131,7 +164,8 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
         plt.text(v, i, " " + str(round(v, 4)), va='center')
     plt.gca().invert_yaxis()
 
-    return feature_importance
+    return ft_importance
+
 
 def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4):
     """
@@ -148,7 +182,6 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     """
     cols = 2  # 2 columns of subplots
     rows = np.ceil(max_poly_degree / cols)  # determine the number of rows of subplots
-    all_columns = list(all_feature_importance['feature'])
 
     fig, axes = plt.subplots(int(rows), cols, figsize=(15, 15))
     axes = axes.ravel()  # flatten axes for easy iterating
@@ -202,7 +235,6 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
         print('\nSelected features:', selected_columns, '\n')
 
         # Plot the MSE for train and cv samples
-        selected_features_ = mse_train_all.keys()
         mse_train_vals = [mse_train_all[i] for i in selected_columns]
         mse_cv_vals = [mse_cv_all[i] for i in selected_columns]
 
@@ -224,12 +256,15 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
 
     return selected_features
 
-def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degree=4, epochs=300, verbose=0, learning_rate=0.001):
+
+def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degree=4, epochs=300, verbose=0,
+                             learning_rate=0.001):
     """
-    Neural network with 4 Dense layers (64, 32, 15, 1) and each with a linear activator. The function runs several models in accordance
-    with the indicated degree of polynomial. The model is selected by the smallest Mean Squared Error assessed via the sklearn library.
-    A graph will show the mean squared error for each degree of polynomial.
-    Finally, the function will also calculate the Mean Squared Error for the test set based on the performance of the selected model.
+    Neural network with 4 Dense layers (64, 32, 15, 1) and each with a linear activator. The function runs several
+    models in accordance with the indicated degree of polynomial. The model is selected by the smallest Mean Squared
+    Error assessed via the sklearn library. A graph will show the mean squared error for each degree of polynomial.
+    Finally, the function will also calculate the Mean Squared Error for the test set based on the performance of the
+    selected model.
 
     :param x_train: the train data sample of all the numeric independent features
     :param y_train: the target data sample for the train sample in a numeric format
@@ -240,6 +275,7 @@ def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_d
     :param max_degree: the maximal polynomial degree to transform the variables
     :param epochs: an integer that constitutes the number of epochs each model will be run on, default 300
     :param verbose: an integer that suppresses the text notation of each step in the modelling phase
+    :param learning_rate: the learning rate of the model. Default 0.001
     :return: selected_model - the selected model data
              standardscale  - scaling data to transform features
              polynomialft   - polynomial data to transform features
@@ -320,21 +356,21 @@ def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_d
 
 def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degree=5):
     """
-    Computes a linear regression model based on the normal equation (OLS) method to select the coefficients for each feature. The features
-    will be transformed using standard scaler and polynomial degree.
-    The optimal model will be selected based on all the mean squared errors calculated from on the train and cross validation samples.
-    A graph will be presented with the mean squared errors for each model.
-    :param x_train: the train data sample of all the numeric independent features
+    Computes a linear regression model based on the normal equation (OLS) method to select the coefficients for each
+    feature. The features will be transformed using standard scaler and polynomial degree. The optimal model will be
+    selected based on all the mean squared errors calculated from on the train and cross validation samples. A graph
+    will be presented with the mean squared errors for each model.
+    :param x_train: the train data sample of all the
+    numeric independent features
     :param y_train: the target data sample for the train sample in a numeric format
     :param x_cv: the cross-validation sample of all the numeric independent features
-    :param y_cv: the target data sample for the cross validation sample in a numeric format
-    :param x_test: the test sample of all the numeric independent features
+    :param y_cv: the target data
+    sample for the cross validation sample in a numeric format
+    :param x_test: the test sample of all the numeric
+    independent features
     :param y_test: the target data sample for the test sample in a numeric format
     :param max_degree: the maximal polynomial degree to transform the variables
-    :return: selected_model - the selected model data
-             standardscale  - scaling data to transform features
-             polynomialft   - polynomial data to transform features
-             mse_test       - the mean squared error on the test sample
+    :return: selected_model, data standardscale, polynomialft, mse_test
     """
     cv_errors = np.zeros(0)
     train_errors = np.zeros(0)
@@ -373,7 +409,8 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
         all_poly[str(i)] = polyn
         degrees[str(i)] = i
         print(
-            f"The mean squared error for the polynomial degree of {i} on the train sample is: {mse_train}, the mean squared error on the cross "
+            f"The mean squared error for the polynomial degree of {i} on the train sample is: {mse_train}, the mean "
+            f"squared error on the cross"
             f"validation sample is: {mse_cv}")
     min_value = np.min(np.concatenate([cv_errors, train_errors])) * 0.95
     max_value = min(cv_errors) * 4
@@ -402,12 +439,14 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
     pred_test = selected_model.predict(test_std_poly)
     # Calculate the mean squared error for the test sample
     mse_test = mean_squared_error(y_test, pred_test)
-    print(f"The mean squared error of the selected model of {index_best_model} polynomial degree on the test sample is {mse_test}")
+    print(f"The mean squared error of the selected model of {index_best_model} "
+          f"polynomial degree on the test sample is {mse_test}")
 
     return selected_model, standard_selected, ploy_selected, pred_test, mse_test
 
 
-def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1, last_errors=10,
+def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_test, alpha, num_iters, poly_degree=1,
+                                       last_errors=10,
                                        cost_decimals=4):
     """
     Performs linear regression with gradient descent to learn w and b. Updates w and b by taking
@@ -461,9 +500,9 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
         # Update Parameters using w, b, alpha and gradient
         w = w - alpha * dj_dw
         b = b - alpha * dj_db
-        # Stop gradient decent when the 4 decimals rounded of the last 10 cost function values equal to the current cost value
+        # Stop gradient decent when the 4 decimals rounded of the last 10 cost function equal to the last cost value
         if len(J_history) > 100:
-            if (np.round(J_history[last_errors:-1], cost_decimals) == np.round(cost, cost_decimals)).all() == True:
+            if (np.round(J_history[last_errors:-1], cost_decimals) == np.round(cost, cost_decimals)).all():
                 break
             else:
                 # Print cost at specified intervals
@@ -501,7 +540,8 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
 
     return w, b, standard_gd, poly_gd, pred_test, mse_test
 
-class predict_gd:
+
+class Predict_gd:
     def __init__(self, w, b):
         self.w = w
         self.b = b
@@ -513,23 +553,31 @@ class predict_gd:
 
 def best_regression(all_mse, all_models, all_standardscaler, all_polyft):
     min_mse = min(all_mse, key=all_mse.get)
+    selected_model = []
+    standardization = []
+    polynomial_transformation = []
 
     if min_mse != 'gradient':
         selected_model = all_models[min_mse]
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
     if min_mse == 'gradient':
-        selected_model = predict_gd(w=all_models['gradient']['w'], b=all_models['gradient']['b'])
+        selected_model = Predict_gd(w=all_models['gradient']['w'], b=all_models['gradient']['b'])
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
+
     return selected_model, standardization, polynomial_transformation
+
 
 ########################################################
 #           Section 2: Polt functions                  #
 ########################################################
 
-def plot_correlation_heatmap(x_train, y_train, fig_size=(14, 10), cmap='coolwarm', linewidth=.5, annot_kws={"size": 10}):
+def plot_correlation_heatmap(x_train, y_train, cmap='coolwarm', linewidth=.5,
+                             annot_kws=None):
     # Compute correlation and round off to 2 decimal places
+    if annot_kws is None:
+        annot_kws = {"size": 10}
     df = pd.concat([y_train, x_train], axis=1)
     corr = np.around(df.corr(), decimals=2)
 
@@ -538,13 +586,14 @@ def plot_correlation_heatmap(x_train, y_train, fig_size=(14, 10), cmap='coolwarm
     mask[np.triu_indices_from(mask)] = True
 
     # Plotting
-    fig, axes = plt.subplots(figsize=fig_size)
     sns.heatmap(corr, mask=mask, linewidths=linewidth, cmap=cmap,
                 annot=True, annot_kws=annot_kws, fmt=".2f")
     plt.title('Correlation of the selected variables', color='black')
 
     plt.show()
 
+
+# noinspection PyIncorrectDocstring
 def plot_actual_vs_predicted(y_test, *args, labels, observations=30):
     """
     Plot the values of the actual y and the predicted ones. The first argument always should be the actual values of y.
@@ -572,6 +621,7 @@ def plot_actual_vs_predicted(y_test, *args, labels, observations=30):
         plt.tight_layout()
     return plt.show()
 
+
 def plot_features(x, y):
     """
     Visual assessment of the selected features on scatter plots.
@@ -581,7 +631,6 @@ def plot_features(x, y):
     :return: plt.show() function that shows the plots
     """
     aspect_ratio = (8, 5)
-    num_subplots = x.shape[1]
     num_columns = 2
     num_rows = (x.shape[1] + 1) // 2  # Calculate the number of rows based on the number of subplots
 
@@ -592,7 +641,8 @@ def plot_features(x, y):
     else:
         subplot_size = (subplot_size[1] * aspect_ratio[0] / aspect_ratio[1], subplot_size[1])
 
-    fig, axes = plt.subplots((x.shape[1] + 1) // 2, 2, figsize=(num_columns * subplot_size[0], num_rows * subplot_size[1]),
+    fig, axes = plt.subplots((x.shape[1] + 1) // 2, 2,
+                             figsize=(num_columns * subplot_size[0], num_rows * subplot_size[1]),
                              constrained_layout=True)
     # Flatten the axes array to access subplots one by one
     axes = axes.flatten()
@@ -607,10 +657,13 @@ def plot_features(x, y):
 
     return plt.show()
 
+
 def plot_selected_features(selected_features, all_features):
     # Assign Gini values and feature names
     gini_values = all_features['gini'].round(4)
-    all_features = pd.concat([selected_features, all_features[~all_features['feature'].isin(selected_features['feature'])]])['feature']
+    all_features = \
+        pd.concat([selected_features, all_features[~all_features['feature'].isin(selected_features['feature'])]])[
+            'feature']
 
     # Assign color based on whether the feature is selected or not
     colors = ['red' if feature in selected_features else 'blue' for feature in all_features]
