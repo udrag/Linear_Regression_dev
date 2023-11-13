@@ -19,4 +19,6 @@ The framework will be going through the following steps:
 10. Plot the predicted values using the test set from all three models vs the actual values from the test set.
 11. Assign the model's, standardization and polynomial transformation information for later use.
 
-Please keep in mind that although the aim is to automate the modeling process, manual input might be required. All functions allow manual input of parameters. 
+Just to let you know, although the aim is to automate the modeling process, manual input might be required. All functions allow manual input of parameters. 
+
+The project relies on the functions included in the utils.py file. There are two sections that group modeling functions and plot ones. Although you might find that some modeling functions also have included plots, these are referred to as part of the modeling functions.
