@@ -109,17 +109,23 @@ class BestParam:
          best_max_deph - best max depth number to be used in the forest regressor parameters
          best_n_estimators - best n estimators number to be used in the forest regressor parameters
         """
+        # Transform independent variables
+        standard = StandardScaler()
+        train_std = standard.fit_transform(x_train)
+        x_cv_std = standard.transform(x_cv)
+        # Create a new figure
         plt.figure(figsize=(12, 4))
-
+        # Set the parameters values and names
         param_ranges = [[2, 10, 30, 50, 100, 200, 300, 400],
                         [2, 4, 8, 16, 32, 64, 128],
                         [10, 25, 50, 100, 250, 500]]
         param_names = ['min_samples_split', 'max_depth', 'n_estimators']
+        # Additional variables
         results_all = pd.DataFrame()
         best_param_values = []
         for i, (param_range, param_name) in enumerate(zip(param_ranges, param_names), 1):
             results, best_param_value, min_distance_index = BestParam.find_best_param_values(
-                param_range, param_name, x_train, y_train, x_cv, y_cv, random_state=1234)
+                param_range, param_name, train_std, y_train, x_cv_std, y_cv, random_state=1234)
             results_all = pd.concat([results, results_all], axis=1)
             BestParam.plot_results(results, best_param_value, min_distance_index, i, param_name)
             best_param_values.append(best_param_value)
@@ -141,9 +147,14 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     :param n_estimators: the number of n_estimators for the regressor
     :return: feature_importance - a DataFrame of selected features and their respective Gini scores
     """
+    # Transform independent variables
+    standard = StandardScaler()
+    train_std = standard.fit_transform(x_train)
+    # Add back column names
+    train_std = pd.DataFrame(train_std, columns=x_train.columns)
     # Create and fit the model
     model = RandomForestRegressor(min_samples_split=min_split, max_depth=max_depth, n_estimators=n_estimators)
-    model.fit(x_train, y_train)
+    model.fit(train_std, y_train)
 
     # Compute the feature importance
     significant_features_indices = model.feature_importances_ > 0
@@ -160,14 +171,15 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     plt.ylabel('Features')
 
     # Iterate over the features and Gini scores to add labels to the bars
-    for i, v in enumerate(feature_importance['gini']):
+    for i, v in enumerate(ft_importance['gini']):
         plt.text(v, i, " " + str(round(v, 4)), va='center')
     plt.gca().invert_yaxis()
 
     return ft_importance
 
 
-def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4):
+def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4,
+                                           reduce_corr=True, corr_limit=0.7):
     """
     Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
     will transform the values of the feature through 4 polynomial degrees.
@@ -189,13 +201,39 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     selected_features = defaultdict(int)
 
     for idx, degree in enumerate(range(1, max_poly_degree + 1)):
+        if reduce_corr == True:
+            corr_matrix = x_train.corr().abs()
+            mask = np.where((np.tri(*corr_matrix.shape)), True, False)
+            corr_pairs = corr_matrix[mask].stack()
+            results = pd.DataFrame(corr_pairs, columns=['correlation']).reset_index()
+            results.columns = ['var_1', 'var_2', 'correlation']
+            results = results[results['var_1'] != results['var_2']]
+            results.drop_duplicates(inplace=True)
+            results = results[results['correlation'] > corr_limit]
+            temp_1 = pd.merge(all_feature_importance, results, left_on='feature', right_on='var_1', how='right')
+            results = pd.merge(all_feature_importance, temp_1, left_on='feature', right_on='var_2', how='right')
+            results.rename(columns={'gini_x': 'gini_var_2', 'gini_y': 'gini_var_1'}, inplace=True)
+            results.drop(columns=['feature_x', 'feature_y'], inplace=True)
+            mask_col = ['var_1', 'var_2', 'correlation', 'gini_var_1', 'gini_var_2']
+            results = results[mask_col]
+            results['combined'] = results.apply(lambda row: '-'.join(sorted([row['var_1'], row['var_2']])), axis=1)
+            results = results.drop_duplicates(subset=['combined'])
+            results = results.drop(columns=['combined'])
+            results = results.sort_values('correlation', ascending=False).reset_index(drop=True)
+            high_corr_drop = []
+            for index, col in enumerate(results):
+                if results['gini_var_1'][index] > results['gini_var_2'][index]:
+                    high_corr_drop.append(results['var_2'][index])
+                elif results['gini_var_1'][index] < results['gini_var_2'][index]:
+                    high_corr_drop.append(results['var_1'][index])
+            all_columns = list(all_feature_importance['feature'])
+        else:
+            all_columns = list(all_feature_importance['feature'])
         print(f"Running for Polynomial degree = {degree}")
         mse_train_all = {}
         mse_cv_all = {}
         selected_columns = []
         min_mse = float('inf')
-        all_columns = list(all_feature_importance['feature'])
-
         # Continue selecting more features until none are left
         while all_columns:
             mse_cv_list_remaining = {}  # define a new dictionary each time
@@ -223,7 +261,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
 
             min_key = min(mse_cv_list_remaining, key=lambda k: mse_cv_list_remaining[k])
 
-            if mse_cv_list_remaining[min_key] < min_mse * 1.01:
+            if mse_cv_list_remaining[min_key] * 1.01 < min_mse:
                 min_mse = mse_cv_list_remaining[min_key]
                 selected_columns.append(min_key)
                 all_columns.remove(min_key)
@@ -506,7 +544,7 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
                 break
             else:
                 # Print cost at specified intervals
-                if i % math.ceil(num_iters / 10) == 0:
+                if i % math.ceil(num_iters / 100) == 0:
                     print(f"Iteration {i}: Cost {J_history[-1]}")
         # Save cost J at each iteration
         for c in range(m):
@@ -586,10 +624,10 @@ def plot_correlation_heatmap(x_train, y_train, cmap='coolwarm', linewidth=.5,
     mask[np.triu_indices_from(mask)] = True
 
     # Plotting
+    plt.figure(figsize=(15,8))
     sns.heatmap(corr, mask=mask, linewidths=linewidth, cmap=cmap,
                 annot=True, annot_kws=annot_kws, fmt=".2f")
     plt.title('Correlation of the selected variables', color='black')
-
     plt.show()
 
 
