@@ -226,7 +226,8 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
                     high_corr_drop.append(results['var_2'][index])
                 elif results['gini_var_1'][index] < results['gini_var_2'][index]:
                     high_corr_drop.append(results['var_1'][index])
-            all_columns = list(all_feature_importance['feature'])
+            print(f'The removed columns are as follows: {high_corr_drop}')
+            all_columns = list(all_feature_importance[~all_feature_importance['feature'].isin(high_corr_drop)]['feature'])
         else:
             all_columns = list(all_feature_importance['feature'])
         print(f"Running for Polynomial degree = {degree}")
@@ -292,7 +293,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
 
     selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
 
-    return selected_features
+    return selected_features, all_feature_importance
 
 
 def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degree=4, epochs=300, verbose=0,
