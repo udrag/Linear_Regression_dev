@@ -1,24 +1,32 @@
 # Linear_Neural_Networks
-My first project after completing the Course Machine Learning Specialisation on Coursera. In this repository, you will find a Linear Neural Network model built to predict Bucharest's next day's average temperature.
 
-In this project, you will find several classes and functions that build a predictor to estimate a quantitative target. This project aims to provide a framework able to work on any numerical data as long as the target value is positioned in the first column and there are no missing values.
+My first project post completing the Machine Learning Specialization on Coursera focuses on predicting the next day's average temperature in Bucharest using a Linear Neural Network model.
 
-The framework will be going through the following steps:
+Within this repository, you'll discover classes and functions forming a predictor for estimating quantitative targets. The objective is to offer a versatile framework applicable to any numerical dataset, provided the target value is in the first column, and there are no missing values.
 
-1. Split data into 3 sets: training, cross-validation and test.
-     - Training will be used to find the coefficients.
-     - Cross-validation will be used to assess and select the model.
-     - Test will be used to assess the selected model. This will reduce the selection bias.
-3. Find the best parameters for the Random Forest Regressor using train and cross-validation sets.
-4. Computes a Random Forest Regressor to calculate the Gini values of the features.
-5. Through a Linear Regression OLS method, the MSE is plotted for adding subsequently one by one the features to the model.
-6. Scatter plotting the selected features concerning the target variable.
-7. Build a neural network with Leaky ReLU (Leaky Rectified Linear Units) activation.
-8. Build a linear regression using sklearn library (this method uses the OLS method or normal equation to find the coefficients).
-9. Build a linear regression using gradient descent through partial derivatives to update the coefficient until convergence is reached.
-10. Plot the predicted values using the test set from all three models vs the actual values from the test set.
-11. Assign the model's, standardization and polynomial transformation information for later use.
+The framework involves the following steps:
 
-Just to let you know, although the aim is to automate the modeling process, manual input might be required. All functions allow manual input of parameters. 
+1. Divide data into three sets: training, cross-validation, and test.
+   - Training identifies coefficients.
+   - Cross-validation assesses and selects the model.
+   - Testing validates the selected model, minimizing selection bias.
+   
+2. Identify optimal parameters for the Random Forest Regressor using training and cross-validation sets.
 
-The project relies on the functions included in the utils.py file. There are two sections that group modeling functions and plot ones. Although you might find that some modeling functions also have included plots, these are referred to as part of the modeling functions.
+3. Utilize a Random Forest Regressor to compute Gini values for features.
+
+4. Implement a Linear Regression OLS method to plot Mean Squared Error (MSE), adding features sequentially to the model.
+
+5. Create scatter plots for selected features concerning the target variable.
+
+6. Construct a neural network with Leaky Rectified Linear Units (ReLU) activation.
+
+7. Develop linear regression models using the sklearn library, employing both the OLS method and gradient descent through partial derivatives until convergence.
+
+8. Generate plots comparing predicted values from the test set for all three models against actual values.
+
+9. Record model information, standardization, and polynomial transformation details for future use.
+
+Despite the aim to automate modeling, certain functions allow manual parameter input. Manual input is facilitated across all functions.
+
+The project relies on functions in the `utils.py` file, categorized into modeling and plot sections. Note that some modeling functions may include plots, considered part of the modeling functions.
