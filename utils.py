@@ -184,12 +184,17 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
     will transform the values of the feature through 4 polynomial degrees.
 
+    Optionally, the function will remove the variables with higher correlation based on small gini importance computed previously in
+    a Random Forest Regressor.
+
     :param x_train: the independent variables values of the training set
     :param y_train: the target values of training set
     :param x_cv: the independent variables values of the cross validation set
     :param y_cv: the target values of cross validation set
     :param all_feature_importance: dataframe of all features and corresponding gini value
     :param max_poly_degree: int of the maximum polynomial degree
+    :param reduce_corr: Boolean True or False to compute and remove the specified highly correlated variables
+    :param corr_limit: the lower correlation coefficient above which to remove the variables
     :return: plt.show()
     """
     cols = 2  # 2 columns of subplots
@@ -197,10 +202,11 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
 
     fig, axes = plt.subplots(int(rows), cols, figsize=(15, 15))
     axes = axes.ravel()  # flatten axes for easy iterating
-
+    all_columns = []
     selected_features = defaultdict(int)
 
     for idx, degree in enumerate(range(1, max_poly_degree + 1)):
+        # Reduce correlated features
         if reduce_corr == True:
             corr_matrix = x_train.corr().abs()
             mask = np.where((np.tri(*corr_matrix.shape)), True, False)
@@ -230,6 +236,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
             all_columns = list(all_feature_importance[~all_feature_importance['feature'].isin(high_corr_drop)]['feature'])
         else:
             all_columns = list(all_feature_importance['feature'])
+        # With the final all_features_importance defined we can proceed to selecting features
         print(f"Running for Polynomial degree = {degree}")
         mse_train_all = {}
         mse_cv_all = {}
@@ -292,6 +299,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     print("Features selected at least twice", selected_features_twice)
 
     selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
+    all_feature_importance = all_feature_importance[all_feature_importance['feature'].isin(all_columns)]
 
     return selected_features, all_feature_importance
 
@@ -699,10 +707,9 @@ def plot_features(x, y):
 
 def plot_selected_features(selected_features, all_features):
     # Assign Gini values and feature names
-    gini_values = all_features['gini'].round(4)
-    all_features = \
-        pd.concat([selected_features, all_features[~all_features['feature'].isin(selected_features['feature'])]])[
-            'feature']
+    all_features = all_features[~all_features['feature'].isin(selected_features['feature'])]
+    gini_values = pd.concat([selected_features['gini'], all_features['gini']]).round(4)
+    all_features = pd.concat([selected_features, all_features])['feature']
 
     # Assign color based on whether the feature is selected or not
     colors = ['red' if feature in selected_features else 'blue' for feature in all_features]
