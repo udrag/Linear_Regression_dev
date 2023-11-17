@@ -15,8 +15,8 @@ The framework involves the following steps:
 
 3. Utilize a Random Forest Regressor to compute Gini values for features.
 
-4. Implement a Linear Regression OLS method to plot Mean Squared Error (MSE), adding features sequentially to the model.
-
+4. Remove highly correlated variables and based on a Linear Regression OLS method select the most relevant variables based on the reduction of Mean Squared Error (MSE) of each variable sequentially.
+   
 5. Create scatter plots for selected features concerning the target variable.
 
 6. Construct a neural network with Leaky Rectified Linear Units (ReLU) activation.
