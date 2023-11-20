@@ -2,11 +2,15 @@ import numpy as np
 import pandas as pd
 import math
 import copy
+import random
 
+import sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.model_selection import train_test_split
+
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, LeakyReLU
 
@@ -14,8 +18,13 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+from datetime import datetime as dtime
+
 from collections import defaultdict
 
+random.seed(1234)
+np.random.seed(1234)
+tf.random.set_seed(1234)
 
 ########################################################
 #           Section 1: Modelling functions             #
