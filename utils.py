@@ -238,7 +238,6 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     else:
         all_columns = list(all_feature_importance['feature'])
 
-
     cols = 2  # 2 columns of subplots
     rows = np.ceil(max_poly_degree / cols)  # determine the number of rows of subplots
     fig, axes = plt.subplots(int(rows), cols, figsize=(15, 15))
@@ -290,7 +289,8 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
                 print(f"Added column {min_key}. MSE: {min_mse}")
             else:
                 break
-
+        all_selected_features[degree] = selected_columns
+        all_mse[degree] = min(mse_cv_all.values())
         print('\nSelected features:', selected_columns, '\n')
 
         # Plot the MSE for train and cv samples
@@ -309,9 +309,16 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     plt.tight_layout()
     plt.show()
     selected_features_twice = [feature for feature, count in selected_features.items() if count >= 2]
-    print("Features selected at least twice", selected_features_twice)
+    if len(selected_features_twice) < 2:
+        selected_degree = min(all_mse, key=all_mse.get)
+        selected_features = (
+            all_feature_importance)[all_feature_importance['feature'].isin(all_selected_features[selected_degree])]
+        print(
+            f"Features selected with the minimum CV MSE of {selected_degree} are {all_selected_features[selected_degree]}")
+    else:
+        print("Features selected at least twice", selected_features_twice)
+        selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
 
-    selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
     all_feature_importance = all_feature_importance[all_feature_importance['feature'].isin(all_columns)]
 
     return selected_features, all_feature_importance
@@ -625,7 +632,7 @@ def best_regression(all_mse, all_models, all_standardscaler, all_polyft):
         selected_model = Predict_gd(w=all_models['gradient']['w'], b=all_models['gradient']['b'])
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
-
+    print(f"The best selected model is {min_mse}")
     return selected_model, standardization, polynomial_transformation
 
 
