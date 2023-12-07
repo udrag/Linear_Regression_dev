@@ -24,7 +24,7 @@ The framework involves the following steps:
 
 6. Construct a neural network with Leaky Rectified Linear Units (ReLU) activation.
 
-7. Develop linear regression models using the scikit-learn library, employing the OLS linear regression method
+7. Develop linear regression models using the scikit-learn library, employing the OLS linear regression method.
    
 8. Calculate the coefficients using the gradient descent linear regression method through partial derivatives until convergence.
 
