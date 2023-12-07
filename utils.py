@@ -18,6 +18,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+import time
 from datetime import datetime as dtime
 
 from collections import defaultdict
@@ -25,6 +26,7 @@ from collections import defaultdict
 random.seed(1234)
 np.random.seed(1234)
 tf.random.set_seed(1234)
+
 
 ########################################################
 #           Section 1: Modelling functions             #
@@ -187,8 +189,8 @@ def feature_importance(x_train, y_train, min_split, max_depth, n_estimators):
     return ft_importance
 
 
-def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4,
-                                           reduce_corr=True, corr_limit=0.7):
+def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feature_importance, max_poly_degree=4,
+                                          reduce_corr=True, corr_limit=0.7):
     """
     Computes the mean squared error for adding a feature one by one starting from the first one. Additionally,
     will transform the values of the feature through 4 polynomial degrees.
@@ -208,7 +210,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     """
     all_columns = []
     # Reduce correlated features
-    if reduce_corr == True:
+    if reduce_corr:
         corr_matrix = x_train.corr().abs()
         mask = np.where((np.tri(*corr_matrix.shape)), True, False)
         corr_pairs = corr_matrix[mask].stack()
@@ -236,7 +238,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
         print(f'The removed columns are as follows: {high_corr_drop}')
         all_columns = list(all_feature_importance[~all_feature_importance['feature'].isin(high_corr_drop)]['feature'])
     else:
-        all_columns = list(all_feature_importance['feature'])
+        all_columns = list(all_feature_importance['feature'])  # list of columns without the filtering
 
     cols = 2  # 2 columns of subplots
     rows = np.ceil(max_poly_degree / cols)  # determine the number of rows of subplots
@@ -286,7 +288,7 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
                 all_columns.remove(min_key)
                 selected_features[min_key] += 1
 
-                print(f"Added column {min_key}. MSE: {min_mse}")
+                print(f"Added column {min_key} with the MSE: {min_mse:4f}")
             else:
                 break
         all_selected_features[degree] = selected_columns
@@ -318,8 +320,6 @@ def linear_regeression_feature_performance(x_train, y_train, x_cv, y_cv, all_fea
     else:
         print("Features selected at least twice", selected_features_twice)
         selected_features = all_feature_importance[all_feature_importance['feature'].isin(selected_features_twice)]
-
-    all_feature_importance = all_feature_importance[all_feature_importance['feature'].isin(all_columns)]
 
     return selected_features, all_feature_importance
 
@@ -388,8 +388,8 @@ def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_d
         all_standard[str(i)] = standard
         all_poly[str(i)] = poly
         degrees[str(i)] = i
-        print(f"Development of the model with polynomial degree of {i}\nThe MSE for the train set is {mse_train} "
-              f"and the Cross Validation is: {mse_cv}")
+        print(f"Development of the model with polynomial degree of {i}\nThe MSE for the train set is {mse_train:4f} "
+              f"and the Cross Validation is: {mse_cv:4f}")
 
     # Index the smallest CV mse value
     index_best_model = cv_errors.argmin() + 1
@@ -417,7 +417,7 @@ def linear_neural_regression(x_train, y_train, x_cv, y_cv, x_test, y_test, max_d
     mse_test = mean_squared_error(y_test, pred_test)
 
     print(f"The mean squared error of the selected model of {index_best_model} "
-          f"polynomial degree on the test sample is {mse_test}")
+          f"polynomial degree on the test sample is {mse_test:4f}")
     return selected_model, standard_selected, ploy_selected, pred_test, mse_test
 
 
@@ -476,9 +476,9 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
         all_poly[str(i)] = polyn
         degrees[str(i)] = i
         print(
-            f"The mean squared error for the polynomial degree of {i} on the train sample is: {mse_train}, the mean "
+            f"The mean squared error for the polynomial degree of {i} on the train sample is: {mse_train:4f}, the mean "
             f"squared error on the cross"
-            f"validation sample is: {mse_cv}")
+            f"validation sample is: {mse_cv:4f}")
     min_value = np.min(np.concatenate([cv_errors, train_errors])) * 0.95
     max_value = min(cv_errors) * 4
     x_values = range(1, max_degree + 1)
@@ -507,7 +507,7 @@ def linear_regression_ols(x_train, y_train, x_cv, y_cv, x_test, y_test, max_degr
     # Calculate the mean squared error for the test sample
     mse_test = mean_squared_error(y_test, pred_test)
     print(f"The mean squared error of the selected model of {index_best_model} "
-          f"polynomial degree on the test sample is {mse_test}")
+          f"polynomial degree on the test sample is {mse_test:4f}")
 
     return selected_model, standard_selected, ploy_selected, pred_test, mse_test
 
@@ -553,6 +553,7 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
     dj_dw = np.zeros((n,))
     dj_db = 0.
     cost = 0.0
+    start = time.time()  # starting the timer
 
     for i in range(num_iters):
         # Calculate the gradient and update the parameters
@@ -563,6 +564,11 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
             dj_db = dj_db + err
         dj_dw = dj_dw / m
         dj_db = dj_db / m
+        # Increase alpha by 10% if more than 5 minutes have passed
+        elapsed = time.time() - start
+        if elapsed > 240:  # 200 seconds = 5 minutes
+            alpha *= 1.1
+            start = time.time()  # restart the timer if alpha is increased
 
         # Update Parameters using w, b, alpha and gradient
         w = w - alpha * dj_dw
@@ -602,8 +608,8 @@ def linear_regression_gradient_descent(x_train, y_train, x_cv, y_cv, x_test, y_t
     pred_test = np.dot(test_std_poly, w) + b
     # Calculate the mean squared error for the test sample
     mse_test = mean_squared_error(y_test, pred_test)
-    print(f"The mean squared error for the train sample is: {mse_train}, the mean squared error for the cross "
-          f"validation sample is: {mse_cv} and for the test set is: {mse_test}")
+    print(f"The mean squared error for the train sample is: {mse_train:4f}, the mean squared error for the cross "
+          f"validation sample is: {mse_cv:4f} and for the test set is: {mse_test:4f}")
 
     return w, b, standard_gd, poly_gd, pred_test, mse_test
 
@@ -653,7 +659,7 @@ def plot_correlation_heatmap(x_train, y_train, cmap='coolwarm', linewidth=.5,
     mask[np.triu_indices_from(mask)] = True
 
     # Plotting
-    plt.figure(figsize=(15,8))
+    plt.figure(figsize=(15, 8))
     sns.heatmap(corr, mask=mask, linewidths=linewidth, cmap=cmap,
                 annot=True, annot_kws=annot_kws, fmt=".2f")
     plt.title('Correlation of the selected variables', color='black')
@@ -742,11 +748,11 @@ def plot_selected_features(selected_features, all_features):
     for index, value in enumerate(gini_values):
         plt.text(value, index, str(value))
 
-    # Assuming that the selected features are at the beginning of the list
+    # The selected features are at the beginning of the list
     last_selected_feature_index = len(selected_features) - 0.5
 
     # Draw a horizontal line below the last selected feature
-    plt.axhline(last_selected_feature_index, color='green', linestyle='--')
+    plt.axhline(last_selected_feature_index, color='yellow', linestyle='--')
 
     plt.title('Gini values of Features')
     plt.xlabel('Gini values')
