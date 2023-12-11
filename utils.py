@@ -255,7 +255,7 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
         mse_cv_all = {}
         selected_columns = []
         min_mse = float('inf')
-        # Continue selecting more features until none are left
+        # Continue selecting features until none are left
         while all_columns:
             mse_cv_list_remaining = {}  # define a new dictionary each time
             for i in all_columns:
