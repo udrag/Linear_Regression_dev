@@ -208,7 +208,16 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
     :param corr_limit: the lower correlation coefficient above which to remove the variables
     :return: plt.show()
     """
-    all_columns = []
+    cols = 2  # 2 columns of subplots
+    rows = np.ceil(max_poly_degree / cols)  # determine the number of rows of subplots
+    fig, axes = plt.subplots(int(rows), cols, figsize=(15, 15))
+    axes = axes.ravel()  # flatten axes for easy iterating
+    selected_features = defaultdict(int)
+    all_mse = {}
+    all_selected_features = {}
+
+    for idx, degree in enumerate(range(1, max_poly_degree + 1)):
+        all_columns = []
     # Reduce correlated features
     if reduce_corr:
         corr_matrix = x_train.corr().abs()
@@ -240,15 +249,6 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
     else:
         all_columns = list(all_feature_importance['feature'])  # list of columns without the filtering
 
-    cols = 2  # 2 columns of subplots
-    rows = np.ceil(max_poly_degree / cols)  # determine the number of rows of subplots
-    fig, axes = plt.subplots(int(rows), cols, figsize=(15, 15))
-    axes = axes.ravel()  # flatten axes for easy iterating
-    selected_features = defaultdict(int)
-    all_mse = {}
-    all_selected_features = {}
-
-    for idx, degree in enumerate(range(1, max_poly_degree + 1)):
         # With the final all_features_importance defined we can proceed to selecting features
         print(f"Running for Polynomial degree = {degree}")
         mse_train_all = {}
@@ -282,7 +282,7 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
 
             min_key = min(mse_cv_list_remaining, key=lambda k: mse_cv_list_remaining[k])
 
-            if mse_cv_list_remaining[min_key] * 1.005 < min_mse:
+            if mse_cv_list_remaining[min_key] * 1.01 < min_mse:
                 min_mse = mse_cv_list_remaining[min_key]
                 selected_columns.append(min_key)
                 all_columns.remove(min_key)
