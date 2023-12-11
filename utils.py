@@ -218,36 +218,36 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
 
     for idx, degree in enumerate(range(1, max_poly_degree + 1)):
         all_columns = []
-    # Reduce correlated features
-    if reduce_corr:
-        corr_matrix = x_train.corr().abs()
-        mask = np.where((np.tri(*corr_matrix.shape)), True, False)
-        corr_pairs = corr_matrix[mask].stack()
-        results = pd.DataFrame(corr_pairs, columns=['correlation']).reset_index()
-        results.columns = ['var_1', 'var_2', 'correlation']
-        results = results[results['var_1'] != results['var_2']]
-        results.drop_duplicates(inplace=True)
-        results = results[results['correlation'] > corr_limit]
-        temp_1 = pd.merge(all_feature_importance, results, left_on='feature', right_on='var_1', how='right')
-        results = pd.merge(all_feature_importance, temp_1, left_on='feature', right_on='var_2', how='right')
-        results.rename(columns={'gini_x': 'gini_var_2', 'gini_y': 'gini_var_1'}, inplace=True)
-        results.drop(columns=['feature_x', 'feature_y'], inplace=True)
-        mask_col = ['var_1', 'var_2', 'correlation', 'gini_var_1', 'gini_var_2']
-        results = results[mask_col]
-        results['combined'] = results.apply(lambda row: '-'.join(sorted([row['var_1'], row['var_2']])), axis=1)
-        results = results.drop_duplicates(subset=['combined'])
-        results = results.drop(columns=['combined'])
-        results = results.sort_values(by='correlation', ascending=False).reset_index(drop=True)
-        high_corr_drop = []
-        for index, col in results.iterrows():
-            if results['gini_var_1'][index] > results['gini_var_2'][index]:
-                high_corr_drop.append(results['var_2'][index])
-            elif results['gini_var_1'][index] < results['gini_var_2'][index]:
-                high_corr_drop.append(results['var_1'][index])
-        print(f'The removed columns are as follows: {high_corr_drop}')
-        all_columns = list(all_feature_importance[~all_feature_importance['feature'].isin(high_corr_drop)]['feature'])
-    else:
-        all_columns = list(all_feature_importance['feature'])  # list of columns without the filtering
+        # Reduce correlated features
+        if reduce_corr:
+            corr_matrix = x_train.corr().abs()
+            mask = np.where((np.tri(*corr_matrix.shape)), True, False)
+            corr_pairs = corr_matrix[mask].stack()
+            results = pd.DataFrame(corr_pairs, columns=['correlation']).reset_index()
+            results.columns = ['var_1', 'var_2', 'correlation']
+            results = results[results['var_1'] != results['var_2']]
+            results.drop_duplicates(inplace=True)
+            results = results[results['correlation'] > corr_limit]
+            temp_1 = pd.merge(all_feature_importance, results, left_on='feature', right_on='var_1', how='right')
+            results = pd.merge(all_feature_importance, temp_1, left_on='feature', right_on='var_2', how='right')
+            results.rename(columns={'gini_x': 'gini_var_2', 'gini_y': 'gini_var_1'}, inplace=True)
+            results.drop(columns=['feature_x', 'feature_y'], inplace=True)
+            mask_col = ['var_1', 'var_2', 'correlation', 'gini_var_1', 'gini_var_2']
+            results = results[mask_col]
+            results['combined'] = results.apply(lambda row: '-'.join(sorted([row['var_1'], row['var_2']])), axis=1)
+            results = results.drop_duplicates(subset=['combined'])
+            results = results.drop(columns=['combined'])
+            results = results.sort_values(by='correlation', ascending=False).reset_index(drop=True)
+            high_corr_drop = []
+            for index, col in results.iterrows():
+                if results['gini_var_1'][index] > results['gini_var_2'][index]:
+                    high_corr_drop.append(results['var_2'][index])
+                elif results['gini_var_1'][index] < results['gini_var_2'][index]:
+                    high_corr_drop.append(results['var_1'][index])
+            print(f'The removed columns are as follows: {high_corr_drop}')
+            all_columns = list(all_feature_importance[~all_feature_importance['feature'].isin(high_corr_drop)]['feature'])
+        else:
+            all_columns = list(all_feature_importance['feature'])  # list of columns without the filtering
 
         # With the final all_features_importance defined we can proceed to selecting features
         print(f"Running for Polynomial degree = {degree}")
