@@ -282,7 +282,7 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
 
             min_key = min(mse_cv_list_remaining, key=lambda k: mse_cv_list_remaining[k])
 
-            if mse_cv_list_remaining[min_key] * 1.01 < min_mse:
+            if mse_cv_list_remaining[min_key] * 1.005 < min_mse:
                 min_mse = mse_cv_list_remaining[min_key]
                 selected_columns.append(min_key)
                 all_columns.remove(min_key)
