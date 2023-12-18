@@ -742,7 +742,7 @@ def plot_selected_features(selected_features, all_features):
 
     # Plot
     plt.figure(figsize=[10, 8])
-    sns.barplot(x=gini_values, y=all_features, palette=colors)
+    sns.barplot(x=gini_values, y=all_features, hue=colors)
 
     # Show values on the graph
     for index, value in enumerate(gini_values):
