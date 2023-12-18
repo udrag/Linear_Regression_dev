@@ -746,7 +746,7 @@ def plot_selected_features(selected_features, all_features):
 
     # Show values on the graph
     for index, value in enumerate(gini_values):
-        plt.text(value, index, str(value))
+        plt.text(value+0.002, index+0.2, str(value))
 
     # The selected features are at the beginning of the list
     last_selected_feature_index = len(selected_features) - 0.5
