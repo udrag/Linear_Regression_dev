@@ -1,0 +1,195 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2757
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fnil\fcharset0 HelveticaNeue-Bold;\f2\fnil\fcharset0 HelveticaNeue-Italic;
+\f3\fnil\fcharset0 HelveticaNeue-Light;}
+{\colortbl;\red255\green255\blue255;\red38\green38\blue38;\red255\green255\blue255;\red26\green26\blue26;
+\red83\green83\blue83;}
+{\*\expandedcolortbl;;\cssrgb\c20000\c20000\c20000;\cssrgb\c100000\c100000\c100000;\cssrgb\c13333\c13333\c13333;
+\cssrgb\c40000\c40000\c40000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sa480\partightenfactor0
+
+\f0\fs32 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 The following are the list of properties in a day or hourly data object:\
+\pard\pardeftab720\sa480\partightenfactor0
+
+\f1\b \cf2 cloudcover\'a0
+\f0\b0 \'96 how much of the sky is covered in cloud ranging from 0-100%\
+
+\f1\b conditions
+\f0\b0 \'a0\'96 textual representation of the weather conditions. See\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/weather-condition-fields/"}}{\fldrslt \cf4 \strokec4 Weather Data Conditions}}.\
+
+\f1\b description\'a0
+\f0\b0 \'96 longer text descriptions suitable for displaying in weather displays. The descriptions combine the main features of the weather for the day such as precipitation or amount of cloud cover. Daily descriptions are provided for historical and forecast days. When the timeline request includes the model forecast period, a seven day outlook description is provided at the root response level.\
+
+\f1\b datetime
+\f0\b0 \'a0\'96 ISO 8601 formatted date, time or datetime value indicating the date and time of the weather data in the local time zone of the requested location. See{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/date-and-times-in-the-weather-api/"}}{\fldrslt \cf4 \strokec4 \'a0Dates and Times in the Weather API}}\'a0for more information.\
+
+\f1\b datetimeEpoch
+\f0\b0 \'a0\'96 number of seconds since 1st January 1970 in UTC time\
+
+\f1\b tzoffset\'a0
+\f0\b0 \'96 the time zone offset in hours. This will only occur in the data object if it is different from the global time zone offset.\
+
+\f1\b dew\'a0
+\f0\b0 \'96 dew point temperature\
+
+\f1\b feelslike\'a0
+\f0\b0 \'96 what the temperature feels like accounting for heat index or wind chill. Daily values are average values (mean) for the day.\
+
+\f1\b feelslikemax
+\f0\b0 \'a0(day only) \'96 maximum feels like temperature at the location.\
+
+\f1\b feelslikemin
+\f0\b0 \'a0(day only) \'96 minimum feels like temperature at the location.\
+
+\f1\b hours
+\f0\b0 \'a0\'96 array of hourly weather data objects. This is a child of each of the daily weather object when hours are selected.\
+
+\f1\b humidity
+\f0\b0 \'a0\'96 relative humidity in %\
+
+\f1\b icon
+\f0\b0 \'a0\'96 a fixed, machine readable summary that can be used to display an icon\
+
+\f1\b moonphase
+\f0\b0 \'a0\'96\'a0 represents the fractional portion through the current moon lunation cycle ranging from 0 (the new moon) to 0.5 (the full moon) and back to 1 (the next new moon). See\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/how-to-include-sunrise-sunset-and-moon-phase-data-into-your-api-requests/"}}{\fldrslt \cf4 \strokec4 How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests}}\
+
+\f1\b normal\'a0
+\f0\b0 \'96 array of normal weather data values \'96 Each weather data normal is an array of three values representing, in order, the minimum value over the statistical period, the mean value, and the maximum value over the statistical period.\
+
+\f1\b offsetseconds\'a0
+\f0\b0 (hourly only) \'96 time zone offset for this weather data object in seconds \'96 This value may change for a location based on daylight saving time observation.\
+
+\f1\b precip
+\f0\b0 \'a0\'96 the amount of liquid precipitation that fell or is predicted to fall in the period. This includes the liquid-equivalent amount of any frozen precipitation such as snow or ice.\
+
+\f1\b precipcover
+\f0\b0 \'a0(days only) \'96 the proportion of hours where there was non-zero precipitation\
+
+\f1\b precipprob
+\f0\b0 \'a0(forecast only) \'96 the likelihood of measurable precipitation ranging from 0% to 100%\
+
+\f1\b preciptype
+\f0\b0 \'a0\'96 an array indicating the type(s) of precipitation expected or that occurred. Possible values include rain, snow, freezingrain and ice.\
+
+\f1\b pressure
+\f0\b0 \'a0\'96 the sea level atmospheric or barometric pressure in millibars (or hectopascals)\
+
+\f1\b snow
+\f0\b0 \'a0\'96 the amount of snow that fell or is predicted to fall\
+
+\f1\b snowdepth
+\f0\b0 \'a0\'96 the depth of snow on the ground\
+
+\f1\b source
+\f0\b0 \'a0\'96 \'a0the type of weather data used for this weather object. \'96 Values include historical observation (\'93obs\'94), forecast (\'93fcst\'94), historical forecast (\'93histfcst\'94) or statistical forecast (\'93stats\'94). If multiple types are used in the same day, \'93comb\'94 is used. Today a combination of historical observations and forecast data.\
+
+\f1\b stations
+\f0\b0 \'a0(historical only) \'96 the weather stations used when collecting an historical observation record\
+
+\f1\b sunrise
+\f0\b0 \'a0(day only) \'96 The formatted time of the sunrise (For example \'932022-05-23T05:50:40\'94). See\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/how-to-include-sunrise-sunset-and-moon-phase-data-into-your-api-requests/"}}{\fldrslt \cf4 \strokec4 How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests}}\
+
+\f1\b sunriseEpoch
+\f0\b0 \'a0\'96 sunrise time specified as number of seconds since 1st January 1970 in UTC time\
+
+\f1\b sunset
+\f0\b0 \'a0\'96 The formatted time of the sunset (For example\'a0\'932022-05-23T20:22:29\'94). See\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/how-to-include-sunrise-sunset-and-moon-phase-data-into-your-api-requests/"}}{\fldrslt \cf4 \strokec4 How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests}}\
+
+\f1\b sunsetEpoch
+\f0\b0 \'a0\'96 sunset time specified as number of seconds since 1st January 1970 in UTC time\
+
+\f1\b moonrise
+\f0\b0 \'a0(day only, optional) \'96 The formatted time of the moonrise (For example \'932022-05-23T02:38:10\'94). See\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/how-to-include-sunrise-sunset-and-moon-phase-data-into-your-api-requests/"}}{\fldrslt \cf4 \strokec4 How to include sunrise, sunset, moon phase, moonrise and moonset data into your API requests}}\
+
+\f1\b moonriseEpoch
+\f0\b0 \'a0(day only, optional) \'96 moonrise time specified as number of seconds since 1st January 1970 in UTC time\
+
+\f1\b moonset
+\f0\b0 \'a0(day only, optional) \'96 The formatted time of the moonset (For example\'a0\'932022-05-23T13:40:07\'94)\
+
+\f1\b moonsetEpoch
+\f0\b0 \'a0(day only, optional) \'96 moonset time specified as number of seconds since 1st January 1970 in UTC time\
+
+\f1\b temp
+\f0\b0 \'a0\'96 temperature at the location. Daily values are average values (mean) for the day.\
+
+\f1\b tempmax
+\f0\b0 \'a0(day only) \'96 maximum temperature at the location.\
+
+\f1\b tempmin
+\f0\b0 \'a0(day only) \'96 minimum temperature at the location.\
+
+\f1\b uvindex
+\f0\b0 \'a0\'96 a value between 0 and 10 indicating the level of ultra violet (UV) exposure for that hour or day. 10 represents high level of exposure, and 0 represents no exposure. The UV index is calculated based on amount of short wave solar radiation which in turn is a level the cloudiness, type of cloud, time of day, time of year and location altitude. Daily values represent the maximum value of the hourly values.\
+
+\f1\b visibility
+\f0\b0 \'a0\'96 distance at which distant objects are visible\
+
+\f1\b winddir
+\f0\b0 \'a0\'96 direction from which the wind is blowing\
+
+\f1\b windgust
+\f0\b0 \'a0\'96 instantaneous wind speed at a location \'96 May be empty if it is not significantly higher than the wind speed. Daily values are the maximum hourly value for the day.\
+
+\f1\b windspeed
+\f0\b0 \'a0\'96 the sustained wind speed measured as the average windspeed that occurs during the preceding one to two minutes. Daily values are the maximum hourly value for the day.\
+
+\f1\b windspeedmax
+\f0\b0 \'a0(day only, optional)
+\f1\b \'a0
+\f0\b0 \'96 maximum wind speed over the day.\
+
+\f1\b windspeedmean\'a0
+\f0\b0 (day only , optional ) \'96 average (mean) wind speed over the day.\
+
+\f1\b windspeedmin\'a0
+\f0\b0 (day only , optional ) \'96 minimum wind speed over the day.\
+
+\f1\b solarradiation\'a0
+\f0\b0 \'96 (W/m
+\fs24 2
+\fs32 ) the solar radiation power at the instantaneous moment of the observation (or forecast prediction). See the\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-data/how-to-obtain-solar-radiation-data/"}}{\fldrslt \cf4 \strokec4 full solar radiation data documentation}}\'a0and\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/energy-elements-in-the-timeline-weather-api/"}}{\fldrslt \cf4 \strokec4 Wind and Solar Energy}}\'a0pages .\
+
+\f1\b solarenergy\'a0
+\f0\b0 \'96 (MJ /m
+\fs24 2
+\fs32 \'a0) indicates the total energy from the sun that builds up over an hour or day. See the\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-data/how-to-obtain-solar-radiation-data/"}}{\fldrslt \cf4 \strokec4 full solar radiation data documentation}}\'a0and\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/energy-elements-in-the-timeline-weather-api/"}}{\fldrslt \cf4 \strokec4 Wind and Solar Energy}}\'a0pages .\
+
+\f1\b severerisk (forecast only)
+\f0\b0 \'a0\'96 a value between 0 and 100 representing the risk of convective storms (e.g. thunderstorms, hail and tornadoes). Severe risk is a scaled measure that combines a variety of other fields such as the convective available potential energy (CAPE) and convective inhibition (CIN), predicted rain and wind. Typically, a severe risk value less than 30 indicates a low risk, between 30 and 70 a moderate risk and above 70 a high risk.\
+
+\f1\b cape (forecast only)\'a0
+\f0\b0 \'96 convective available potential energy. This is a numbering indicating amount of energy available to produce thunderstorms. A higher values indicates a more unstable atmosphere capable of creating stronger storms. Values lower than 1000 J/kg indicate generally low instability, between 1000-2500 J/kg medium instability and 2500-4000 J/kg high instability. Values greater than 4000 J/kg indicating an extremely unstable atmosphere.\
+
+\f1\b cin (forecast only)\'a0
+\f0\b0 \'96 convective inhibition. A number representing the level of atmospheric tendency to prevent instability and therefore prevent thunderstorms.\
+
+\f1\b degreedays
+\f0\b0 \'a0(day only) \'96 optional elements indicating the number of degree days for this date. See the\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/documentation/weather-api/degree-day-weather-api/"}}{\fldrslt \cf4 \strokec4 degree days API}}\'a0for more information on degree days. To turn degree days and degree day accumulation on, use the elements parameter. For example, elements=datetime,tempmax,tempmin,degreedays,accdegreedays.\
+To convert existing Dark Sky API parameters to the Timeline Weather API, see\'a0{\field{\*\fldinst{HYPERLINK "https://www.visualcrossing.com/resources/blog/how-to-replace-the-dark-sky-api-using-the-visual-crossing-timeline-weather-api/"}}{\fldrslt 
+\f2\i \cf4 \strokec4 How to replace the Dark Sky API with the Timeline Weather API}}.\
+\pard\pardeftab720\sa292\partightenfactor0
+
+\f3\fs39 \cf5 \strokec5 Degree days parameters\
+\pard\pardeftab720\sa480\partightenfactor0
+
+\f1\b\fs32 \cf2 \strokec2 degreeDayTempFix\'a0
+\f0\b0 \'96 The temperature at which to start the degree day season if no season start and end dates are specified. For example, if the fix temperature is 32F (OC), then the cumulative degree days will reset to zero on the last 32F temperature of the winter. This defines the growing season for growing degree days.\
+
+\f1\b degreeDayStartDate\'a0
+\f0\b0 \'96 Fixes the start of the degree day season based on fixed dates of the format yyyy-M-d (eg 1990-3-1 for 1st March). Default=not specified.\
+
+\f1\b degreeDayTempMaxThreshold
+\f0\b0 \'a0\'96 Defines the maximum temperature that is considered for the calculation. Any temperature above this temperature will be set to the maximum threshold temperature. Default value=not set.\
+
+\f1\b degreeDayTempBase\'a0
+\f0\b0 \'96 The degree day base temperature. Default value is set to 10C/50F\
+
+\f1\b degreeDayInverse\'a0
+\f0\b0 \'96 Calculate the inverse degree days so colder temperatures contribute more degree days. Used for heating degree days. Default=false.\
+
+\f1\b degreeDayMethod (beta)
+\f0\b0 \'a0\'96 The method used for calculating the degree days. Values include average, sine, doublesine, triangle and doubletriangle. Default value is set to average.\
+}
