@@ -59,6 +59,7 @@ class BestParam:
     def find_best_param_values(param_range, param_name, x_train, y_train, x_cv, y_cv, **kwargs):
         """
         Find the best parameters for Random Forest Regressor.
+
         :param param_range: range of parameter's values
         :param param_name: parameter's name
         :param x_train: train sample
@@ -86,6 +87,7 @@ class BestParam:
     def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
         """
         Plot the results of the MSE for all the parameters of the Random Forest Regressor results.
+
         :param results: the values from find_best_param_values return variable
         :param best_param_value: best values for the parameters
         :param min_distance_index: the smallest index based on the data
