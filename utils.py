@@ -85,7 +85,7 @@ class BestParam:
     @staticmethod
     def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
         """
-        Plot the results of the MSE of the parameters of the Random Forest Regressor.
+        Plot the results of the MSE for all the parameters of the Random Forest Regressor results.
         :param results: the values from find_best_param_values return variable
         :param best_param_value: best values for the parameters
         :param min_distance_index: the smallest index based on the data
@@ -108,8 +108,8 @@ class BestParam:
     @staticmethod
     def best_forest_regressor(x_train, y_train, x_cv, y_cv):
         """
-        Computes the best number based on the provided data for the min samples split, max depth and n estimators.
-        These three will be further used for finding the best features based on forest regressor.
+        Computes the best Random Forest Regressor min samples split, max depth and n estimators values.
+        These three values will be further used for finding the best features based on forest regressor.
         Finally, a graph will be produced to show the mean squared error for each parameter.
 
         :param x_train: the train data sample of all the numeric independent features
