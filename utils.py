@@ -229,16 +229,17 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
             results.columns = ['var_1', 'var_2', 'correlation']
             results = results[results['var_1'] != results['var_2']]
             results.drop_duplicates(inplace=True)
-            results = results[results['correlation'] <= corr_limit]
+            results = results[results['correlation'] > corr_limit]
             temp_1 = pd.merge(all_feature_importance, results, left_on='feature', right_on='var_1', how='right')
             results = pd.merge(all_feature_importance, temp_1, left_on='feature', right_on='var_2', how='right')
             results.rename(columns={'gini_x': 'gini_var_2', 'gini_y': 'gini_var_1'}, inplace=True)
             results.drop(columns=['feature_x', 'feature_y'], inplace=True)
             mask_col = ['var_1', 'var_2', 'correlation', 'gini_var_1', 'gini_var_2']
             results = results[mask_col]
-            results['combined'] = results.apply(lambda row: '-'.join(sorted([row['var_1'], row['var_2']])), axis=1)
-            results = results.drop_duplicates(subset=['combined'])
-            results = results.drop(columns=['combined'])
+            if results.shape[0] > 1:
+                results['combined'] = results.apply(lambda row: '-'.join(sorted([row['var_1'], row['var_2']])), axis=1)
+                results = results.drop_duplicates(subset=['combined'])
+                results = results.drop(columns=['combined'])
             results = results.sort_values(by='correlation', ascending=False).reset_index(drop=True)
             high_corr_drop = []
             for index, col in results.iterrows():
