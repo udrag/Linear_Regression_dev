@@ -229,7 +229,7 @@ def linear_regression_feature_performance(x_train, y_train, x_cv, y_cv, all_feat
             results.columns = ['var_1', 'var_2', 'correlation']
             results = results[results['var_1'] != results['var_2']]
             results.drop_duplicates(inplace=True)
-            results = results[results['correlation'] > corr_limit]
+            results = results[results['correlation'] <= corr_limit]
             temp_1 = pd.merge(all_feature_importance, results, left_on='feature', right_on='var_1', how='right')
             results = pd.merge(all_feature_importance, temp_1, left_on='feature', right_on='var_2', how='right')
             results.rename(columns={'gini_x': 'gini_var_2', 'gini_y': 'gini_var_1'}, inplace=True)
@@ -632,12 +632,12 @@ def best_regression(all_mse, all_models, all_standardscaler, all_polyft):
     standardization = []
     polynomial_transformation = []
 
-    if min_mse != 'gradient':
+    if min_mse != 'Gradient Decent':
         selected_model = all_models[min_mse]
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
-    if min_mse == 'gradient':
-        selected_model = Predict_gd(w=all_models['gradient']['w'], b=all_models['gradient']['b'])
+    if min_mse == 'Gradient Decent':
+        selected_model = Predict_gd(w=all_models['Gradient Decent']['w'], b=all_models['Gradient Decent']['b'])
         standardization = all_standardscaler[min_mse]
         polynomial_transformation = all_polyft[min_mse]
     print(f"The best selected model is {min_mse}")
