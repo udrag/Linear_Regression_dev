@@ -85,7 +85,7 @@ class BestParam:
     @staticmethod
     def plot_results(results, best_param_value, min_distance_index, subplot, xlabel):
         """
-        Plot the results of the mse of the parameters of the Random Forest Regressor.
+        Plot the results of the MSE of the parameters of the Random Forest Regressor.
         :param results: the values from find_best_param_values return variable
         :param best_param_value: best values for the parameters
         :param min_distance_index: the smallest index based on the data
